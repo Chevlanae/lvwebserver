@@ -1,14 +1,16 @@
 const express = require('express');
 const session = require('express-session');
+const { body, matchedData } = require('express-validator');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const https = require('https');
-const fs = require('fs');
 const argon2 = require('argon2');
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient } = require('mongodb');
 const MongoStore = require('connect-mongo');
 const assert = require('assert');
+const fs = require('fs');
 const Environment = require('./env.json');
+
 
 
 //process args
@@ -105,41 +107,80 @@ app.get('/signup' , function(req, res){
   res.sendFile('/html/signup/index.html', {root: __dirname});
 });
 
-app.post('/signup', function(req, res){
-  if(!(req.body.password && req.body.username && req.body.email)){
-    res.status(400).send(`Wrong format, request body must have "username", "password", and "email" properties.`);
-    return;
-  }
+app.post('/signup',
+  body('email').isString().isEmail().normalizeEmail(),
+  body('username').isString().escape(),
+  body('password').isString(),
+  function(req, res){
 
-  var userData;
-  for(let key of Object.keys(req.body)){
-    if(typeof req.body[key] != typeof ''){
-      res.status(400).send("Wrong format, request body can only contain string type properties")
-    }
+    var userData = matchedData(req, { locations: ['body'] });
 
+    dbClient.connect((err, result) => {
+      if(err){
+        console.error(error);
+      }
 
-  }
+      var users = result.db('fileserver').collection('users');
+      var userExists = false;
+      users.find({'username': userData.username}).forEach(() => {userExists = true;}).then(() => {
 
-  dbClient.connect((err, result) => {
-    if(err){
-      console.error(error);
-    }
+        if(!userExists){
+          hashPassword(userData.password).then((hashedPassword) => {
+            userData.password = hashedPassword;
+            users.insertOne(userData);
+  
+            req.session.user = userData.username;//
+            res.render('./html/signup/confirm_email.html', {username: req.body.username});
+          });
+        }
+        else{
+          res.status(400).send('User already exists');
+        }
 
-    var users = result.db('fileserver').collection('users');
-    var userExists = false;
-    await users.find({'username': userData.username}).forEach(() => {
-      userExists = true;
+        result.close();
+      });
     });
+  }
+);
 
-    if(!userExists){
-      users.insertOne(userData);
-
-      req.session.user = userData.username;//
-      res.render('./html/signup/confirm_email.html', {username: userData.username});
-    }
-    result.close();
-  });
+app.get('/login', function(req, res){
+  res.sendFile('/html/login/index.html', {root: __dirname});
 });
+
+app.post('/login', 
+  body('username').isString().escape(),
+  body('password').isString(),
+  function(req, res){
+
+    var userData = matchedData(req, { locations: ['body'] });
+
+    dbClient.connect((err, result) => {
+      if(err){
+        console.log(err);
+      }
+      
+      var users = result.db('fileserver').collection('users');
+      users.findOne({'username': userData.username}).then((user) => {
+
+        if(user == null){
+          res.status(400).send('Invalid Username');
+          return;
+        }
+  
+        hashPassword(userData.password).then((hashedPassword) => {
+          if(hashedPassword === user.password){
+            req.session.user = userData.username;
+            res.render('./html/index.html');
+          }
+          else {
+            res.status(400).send('Invalid Password');
+          }
+          result.close();
+        });
+      });
+    });
+  }
+);
 
 //https config
 var options = {
