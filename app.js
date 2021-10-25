@@ -1,15 +1,15 @@
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
-const multer = require('multer');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const https = require('https');
 const fs = require('fs');
-const bcrypt = require('bcrypt');
-const MongoClient = require('mongodb');
+const argon2 = require('argon2');
+const MongoClient = require('mongodb').MongoClient;
+const MongoStore = require('connect-mongo');
 const assert = require('assert');
-const serverVar = require('./env.json');
+const Environment = require('./env.json');
+
 
 //process args
 var port;
@@ -22,30 +22,35 @@ if(port == undefined){
   port = 443;
 }
 
-const dbClient = new MongoClient(serverVar.dbURL);
-dbClient.connect((err) => {
+//db init
+const dbClient = new MongoClient(Environment.dbURL);
+dbClient.connect((err, result) => {
   assert.equal(null, err);
   console.log('Successfully connected to DB');
 
-  const db = dbClient.db('fileserver');
-
+  const db = result.db('fileserver');
   const Users = db.collection('users', {strict: true});
+  await Users.createIndex('username');
+  result.close();
+});
 
-  dbClient.close();
+const hashPassword = async (password) => argon2.hash(password, {
+  type: argon2.argon2id,
+  memoryCost: 2 ** 16,
 });
 
 //server init
 var app = express();
-var upload = multer();
 
 app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(upload.array());
-app.use(cookieParser());
 app.use(session({
-  'secret': () => {
+  cookie: {secure: true, httpOnly: true, samesite: true, maxAge: 600000},
+  resave: false,
+  saveUninitialized: false,
+  name: 'server.sid',
+  secret: () => {
     ////Shuffle array of session secrets
-    let array = serverVar.secrets
+    let array = Environment.secrets
     let currentIndex = array.length,  randomIndex;
 
     // While there remain elements to shuffle...
@@ -60,7 +65,13 @@ app.use(session({
         array[randomIndex], array[currentIndex]];
     }
     return array;
-  }
+  },
+  store: MongoStore.create({
+    mongoUrl: Environment.dbURL,
+    crypto: {
+      secret: Environment.secrets[0]
+    }
+  })
 }));
 
 //configure cors
@@ -91,20 +102,49 @@ app.get('/', checkSignIn, cors(corsOptionsDelegate), function(req, res){
 });
 
 app.get('/signup' , function(req, res){
-  res.sendFile('/html/signup/signup.html', {root: __dirname});
+  res.sendFile('/html/signup/index.html', {root: __dirname});
 });
 
 app.post('/signup', function(req, res){
-  if(!(req.body.password || req.body.username)){
-    res.status(403).send(`Wrong format, request body must have "username", and "password" properties`);
+  if(!(req.body.password && req.body.username && req.body.email)){
+    res.status(400).send(`Wrong format, request body must have "username", "password", and "email" properties.`);
+    return;
   }
 
+  var userData;
+  for(let key of Object.keys(req.body)){
+    if(typeof req.body[key] != typeof ''){
+      res.status(400).send("Wrong format, request body can only contain string type properties")
+    }
 
-})
+
+  }
+
+  dbClient.connect((err, result) => {
+    if(err){
+      console.error(error);
+    }
+
+    var users = result.db('fileserver').collection('users');
+    var userExists = false;
+    await users.find({'username': userData.username}).forEach(() => {
+      userExists = true;
+    });
+
+    if(!userExists){
+      users.insertOne(userData);
+
+      req.session.user = userData.username;//
+      res.render('./html/signup/confirm_email.html', {username: userData.username});
+    }
+    result.close();
+  });
+});
+
 //https config
 var options = {
-  key: fs.readFileSync(serverVar.SSL.key),
-  cert: fs.readFileSync(serverVar.SSL.cert)
+  key: fs.readFileSync(Environment.SSL.key),
+  cert: fs.readFileSync(Environment.SSL.cert)
 };
 
 var server = https.createServer(options, app);

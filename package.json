@@ -1,6 +1,11 @@
 {
   "dependencies": {
-    "bcrypt": "^5.0.1",
+    "argon2": "^0.28.2",
+    "body-parser": "^1.19.0",
+    "connect-mongo": "^4.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
     "mongodb": "^4.1.3",
     "needle": "^3.0.0",
     "sweetalert2": "^11.1.9"
@@ -13,8 +18,16 @@
   },
   "author": "",
   "license": "ISC",
-  "description": "",
   "bin": {
     "execute": "index.js"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chevlanae/http-file-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Chevlanae/http-file-server/issues"
+  },
+  "homepage": "https://github.com/Chevlanae/http-file-server#readme",
+  "description": ""
 }
