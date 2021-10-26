@@ -32,8 +32,7 @@ dbClient.connect((err, result) => {
 
   const db = result.db('fileserver');
   const Users = db.collection('users', {strict: true});
-  await Users.createIndex('username');
-  result.close();
+  Users.createIndex('username').then(() => result.close());
 });
 
 const hashPassword = async (password) => argon2.hash(password, {
@@ -88,16 +87,15 @@ var corsOptionsDelegate = function (req, callback) {
   callback(null, corsOptions) // callback expects two parameters: error and options
 }
 
-//authorization
+//authorization check
 function checkSignIn(req, res){
   if(req.session.user){
-     next();     //If session exists, proceed to page
+     return;     //If session exists, proceed to page
   } else {
-     var err = new Error("Not logged in!");
-     console.log(req.session.user);
-     next(err);  //Error, trying to access unauthorized page!
+     res.redirect('/');
   }
 }
+
 
 app.get('/', checkSignIn, cors(corsOptionsDelegate), function(req, res){
   res.sendFile('/html/index.html', {root: __dirname});
@@ -122,14 +120,14 @@ app.post('/signup',
 
       var users = result.db('fileserver').collection('users');
       var userExists = false;
-      users.find({'username': userData.username}).forEach(() => {userExists = true;}).then(() => {
+      users.find({'username': userData.username}).forEach(() => {userExists = true}).then(() => {
 
         if(!userExists){
           hashPassword(userData.password).then((hashedPassword) => {
             userData.password = hashedPassword;
             users.insertOne(userData);
   
-            req.session.user = userData.username;//
+            req.session.user = unescape(userData.username);
             res.render('./html/signup/confirm_email.html', {username: req.body.username});
           });
         }
