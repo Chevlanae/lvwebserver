@@ -112,7 +112,7 @@ app.post('/signup',
   function(req, res){
 
     var userData = matchedData(req, { locations: ['body'] });
-
+    console.log(userData);
     dbClient.connect((err, result) => {
       if(err){
         console.error(error);
@@ -122,7 +122,7 @@ app.post('/signup',
       var userExists = false;
       users.find({'username': userData.username}).forEach(() => {userExists = true}).then(() => {
 
-        if(!userExists){
+        if(!userExists && typeof userData.password === typeof ''){
           hashPassword(userData.password).then((hashedPassword) => {
             userData.password = hashedPassword;
             users.insertOne(userData);
