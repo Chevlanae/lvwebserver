@@ -2,6 +2,7 @@
   "dependencies": {
     "argon2": "^0.28.2",
     "body-parser": "^1.19.0",
+    "browserify": "^17.0.0",
     "connect-mongo": "^4.6.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -9,6 +10,7 @@
     "express-validator": "^6.13.0",
     "mongodb": "^4.1.3",
     "needle": "^3.0.0",
+    "serve-favicon": "^2.5.0",
     "sweetalert2": "^11.1.9"
   },
   "name": "http-file-browser",
