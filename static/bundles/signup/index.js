@@ -41,11 +41,11 @@ function signup() {
 							icon: "error",
 						});
 					}
-				} else if (res.headers["content-type" == "text/html"]) {
-					swal.fire({
-						title: "Response",
-						html: res.body,
-					});
+				} else if (
+					res.statusCode == 200 &&
+					res.headers["content-type"] == "text/html"
+				) {
+					document.write(res.body);
 				}
 			}
 		});

@@ -26,25 +26,18 @@ function signup() {
 			}
 
 			if (res) {
-				if (res.headers["content-type"] == "application/json") {
-					if ("errors" in res.body) {
-						var errorString = "<p>";
-						for (var error in res.body.errors) {
-							errorString = errorString + error.msg + "<br>";
-						}
-						errorString = errorString + "</p>";
-
-						swal.fire({
-							title: "Error",
-							html: errorString,
-							icon: "error",
-						});
+				if ("errors" in res.body) {
+					var errorString = "<p>";
+					for (var error in res.body.errors) {
+						errorString = errorString + error.toString() + "<br>";
 					}
-				} else if (
-					res.statusCode == 200 &&
-					res.headers["content-type"] == "text/html"
-				) {
-					document.write(res.body);
+					errorString = errorString + "</p>";
+
+					swal.fire({
+						title: "Error",
+						html: errorString,
+						icon: "error",
+					});
 				}
 			}
 		});
@@ -64,11 +57,11 @@ function confirm(original, confirmed, msgbox) {
 		msgbox.innerHTML = `<span style="color: red;"><strong>Fields do not match!</strong><span>`;
 		originalElement.setAttribute(
 			"style",
-			"border: 1px solid rgba(219, 33, 20, 1);",
+			"border: 1px solid rgba(219, 33, 20, 1);"
 		);
 		confirmedElement.setAttribute(
 			"style",
-			"border: 1px solid rgba(219, 33, 20, 1);",
+			"border: 1px solid rgba(219, 33, 20, 1);"
 		);
 
 		if (original == "email") {

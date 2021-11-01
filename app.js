@@ -9,7 +9,9 @@ const argon2 = require("argon2");
 const { MongoClient } = require("mongodb");
 const MongoStore = require("connect-mongo");
 const assert = require("assert");
+const { exec } = require("child_process");
 const fs = require("fs");
+const fsPromises = require("fs").promises;
 const Environment = require("./env.json");
 
 //process args
@@ -24,13 +26,60 @@ process.argv.forEach((val, index) => {
 	}
 });
 if (port == undefined) {
-	port = 443;
+	port = 4443;
 }
+
+//Bundles index.js files in the specified rootDistPath and any child directories,
+//then places the output in ./static/bundles/ with the same path local to rootDistPath, truncating "scripts" directories and moving their contents up a directory.
+//index.js files must be in a "scripts" folder, or else the function will skip it
+var rootDistPath = Environment.distributionPath;
+var bundleScripts = async (path) => {
+	//read dir from path
+	fsPromises.readdir(path, { withFileTypes: true }).then((dirent) => {
+		for (var element of dirent) {
+			//if element is a directory, call this function on that directory
+			if (element.isDirectory()) {
+				var elementPath = path + "/" + element.name;
+				bundleScripts(elementPath);
+
+				//else if element is index.js, work out local paths and bundle file with browserify
+			} else if (element.isFile() && element.name == "index.js") {
+				var localPath = path.replace(rootDistPath, ""); //local relative path
+				var bundlePath = "static/bundles" + localPath.slice(0, -7); // truncate "scripts" folder
+				var bundleScriptPath = bundlePath + element.name;
+				var distScriptPath =
+					rootDistPath.slice(2) + localPath + "/" + element.name;
+
+				//if parent folder is not "scripts", skip this file
+				if (localPath.slice(-7) != "scripts") {
+					return;
+				}
+				fs.mkdirSync("./" + bundlePath, { recursive: true }); //makes bundlePath directory if it does not exist
+				exec(
+					`npx browserify ${distScriptPath} --s bundle > ${bundleScriptPath}`
+				); //bundle script, then output to ./static/bundles
+			}
+		}
+	});
+};
+
+//if "./html" exists, run bundleScripts on rootDistPath
+fs.promises.readdir("./", { withFileTypes: true }).then((dirent) => {
+	var folderExists = false;
+	for (var element of dirent) {
+		if (element.name == rootDistPath.slice(2)) {
+			folderExists = true;
+		}
+	}
+	if (folderExists) {
+		bundleScripts(rootDistPath);
+	}
+});
 
 //db init
 const dbClient = new MongoClient(Environment.dbURL);
 dbClient.connect((err) => {
-	assert.equal(null, err);
+	assert.equal(null, err); //die if bad
 	console.log("Successfully connected to DB");
 
 	const db = dbClient.db("fileserver");
@@ -65,7 +114,14 @@ const secretArr = () => {
 	return array;
 };
 
-const resJSON = (message, error) => {};
+const resJSON = (message, errors = undefined) => {
+	res = {};
+	if (errors) {
+		res.errors = errors;
+	}
+	res.message = message;
+	return res;
+};
 
 //server init
 var app = express();
@@ -86,10 +142,10 @@ app.use(
 				secret: Environment.storeSecret,
 			},
 		}),
-	}),
+	})
 );
 
-//configure cors
+//configure allowed origins
 var corsOptionsDelegate = function (req, callback) {
 	var corsOptions;
 	if (serverVar.originAllowList.indexOf(req.header("Origin")) !== -1) {
@@ -103,7 +159,7 @@ var corsOptionsDelegate = function (req, callback) {
 //authorization check
 function checkSignIn(req, res, next) {
 	if (req.session.user) {
-		next(); //If session exists, proceed to page
+		next(); //If authenticated session exists, proceed to page
 	} else {
 		res.redirect("/login");
 	}
@@ -132,7 +188,7 @@ app.post(
 		}
 
 		dbClient.connect((err) => {
-			assert.equal(null, err);
+			assert.equal(null, err); //die if bad
 
 			var users = dbClient.db("fileserver").collection("users");
 			var userExists = false;
@@ -154,11 +210,11 @@ app.post(
 							});
 						});
 					} else {
-						res.status(400).send("User already exists");
+						res.status(400).json(resJSON("User already exists"));
 					}
 				});
 		});
-	},
+	}
 );
 
 app.get("/login", function (req, res) {
@@ -173,7 +229,7 @@ app.post(
 		var userData = matchedData(req, { locations: ["body"] });
 
 		dbClient.connect((err) => {
-			assert.equal(null, err);
+			assert.equal(null, err); //die if bad
 
 			var users = dbClient.db("fileserver").collection("users");
 			users.findOne({ username: userData.username }).then((user) => {
@@ -185,7 +241,7 @@ app.post(
 				hashPassword(userData.password).then((hashedPassword) => {
 					console.log(hashedPassword, user.password);
 					if (hashedPassword === user.password) {
-						req.session.user = userData.username;
+						req.session.user = unescape(userData.username);
 						res.redirect("/");
 					} else {
 						res.status(400).send("Invalid Password");
@@ -194,7 +250,7 @@ app.post(
 				});
 			});
 		});
-	},
+	}
 );
 
 //https config
