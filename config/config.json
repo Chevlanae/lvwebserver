@@ -1,14 +1,14 @@
 {
     "sessionSecrets": [
-        "py0nEnGQf1sV8f5S6xUiwX95ZDhsWY3T",
-        "DznDi874rUPNY3Wm8jgOfiK4NN6ghzoz",
-        "bhCQrXZgZyTn3Km2z5RMsl4ySPxNnt5l",
-        "sbmEU9vhLTcF4qXa7l2NmYkY3Or6Ahby",
-        "h8BDsQu3N9rC8ABQVUk9sxLtnyKEBtd1",
         "ArYOxhd2zIdOYUDypd6s3ohncblYYLcY",
         "vMVskyEzMqCFpVNovIOG5aLx5YO0wXzP",
+        "bhCQrXZgZyTn3Km2z5RMsl4ySPxNnt5l",
+        "DznDi874rUPNY3Wm8jgOfiK4NN6ghzoz",
         "KgCOdsFJaOamv6rH6Mypa9Z7jbHa6du7",
-        "U45HOsWMS9kwfmokIAP59w1qyZbl0TWt"
+        "sbmEU9vhLTcF4qXa7l2NmYkY3Or6Ahby",
+        "h8BDsQu3N9rC8ABQVUk9sxLtnyKEBtd1",
+        "U45HOsWMS9kwfmokIAP59w1qyZbl0TWt",
+        "py0nEnGQf1sV8f5S6xUiwX95ZDhsWY3T"
     ],
     "storeSecret": "bhCQrXZgZyTn3Km2z5RMsl4ySPxNnt5l",
     "originAllowList": [
