@@ -1,16 +1,9 @@
 const User = require("../models/userModel.js");
 const { jsonResponse } = require("./webWorkerResponses.js");
 const { body, matchedData } = require("express-validator");
+const checkSignIn = require("./helpers/checkSignIn.js");
 
 const rootDir = "./";
-
-function checkSignIn(req, res, next) {
-	if (req.session.user) {
-		next(); //If authenticated session exists, proceed to page
-	} else {
-		res.redirect("/login");
-	}
-}
 
 function generateToken(length) {
 	//edit the token allowed characters
@@ -24,7 +17,7 @@ function generateToken(length) {
 	return b.join("");
 }
 
-function setAuthentication(app) {
+function authentication(app) {
 	app.get("/signup", function (req, res) {
 		res.sendFile("/html/signup/index.html", { root: rootDir });
 	});
@@ -42,9 +35,13 @@ function setAuthentication(app) {
 			userObj.init(userData.username, userData.password).then((newUser) => {
 				newUser.save().then((user) => {
 					if (user.isAuthenticated && !user.alreadyExists) {
-						req.session.user = unescape(user.username);
+						req.session.user = user.username;
 						req.session.resetToken = generateToken(32); ///please add a confirm email workflow
-						res.status(201).redirect("/");
+						var originURL = "/";
+						if (req.session.originURL) {
+							originURL = req.session.originURL; //if user came from a specific page, set redirect to originalURL
+						}
+						res.status(201).redirect(originURL);
 					} else if (user.alreadyExists) {
 						res.status(400).json(jsonResponse("User already exists"));
 					}
@@ -69,7 +66,11 @@ function setAuthentication(app) {
 			userObj.init(userData.username, userData.password).then((user) => {
 				if (user.isAuthenticated) {
 					req.session.user = unescape(user.username);
-					res.redirect("/");
+					var originURL = "/";
+					if (req.session.originURL) {
+						originURL = req.session.originURL;
+					}
+					res.redirect(originURL);
 				} else {
 					res.status(400).json(jsonResponse("Invalid username or password"));
 				}
@@ -92,4 +93,4 @@ function setAuthentication(app) {
 	return app;
 }
 
-module.exports = setAuthentication;
+module.exports = authentication;

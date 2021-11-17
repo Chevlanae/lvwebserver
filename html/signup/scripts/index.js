@@ -22,32 +22,43 @@ function signup() {
 
 		needle.post(url, body, options, (err, res) => {
 			if (err) {
-				swal.fire("Error", err.toString(), "error");
-			}
-
-			if (res) {
+				swal.fire({
+					title: "Error",
+					html: err.toString(),
+					icon: "error",
+				});
+			} else if (res) {
+				var errorString = "";
 				if ("errors" in res.body) {
-					var errorString = "<p>";
+					errorString = "<br><br><p>";
 					for (var error in res.body.errors) {
 						errorString = errorString + error.toString() + "<br>";
 					}
 					errorString = errorString + "</p>";
-
-					swal.fire({
-						title: "Error",
-						html: errorString,
-						icon: "error",
-					});
 				}
+				swal.fire({
+					title: "Error",
+					html: `${res.body.message}${errorString}`,
+					icon: "error",
+				});
 			}
+		});
+	} else if (!emailConfirmed) {
+		swal.fire({
+			title: "Email fields do not match.",
+			icon: "error",
+		});
+	} else if (!passwordConfirmed) {
+		swal.fire({
+			title: "Password fields do not match.",
+			icon: "error",
 		});
 	}
 }
 
 function confirm(original, confirmed, msgbox) {
 	var originalElement = document.getElementById(original),
-		confirmedElement = document.getElementById(confirmed),
-		msgboxElement = document.getElementById(msgbox);
+		confirmedElement = document.getElementById(confirmed);
 
 	if (originalElement.value == "" || confirmedElement.value == "") {
 		originalElement.setAttribute("style", "");

@@ -38,4 +38,4 @@ if (!config.SSL || (config.SSL.key == "" && config.SSL.cert == "")) {
 	});
 }
 
-fs.writeFile("./config/config.json", JSON.stringify(config, null, 4), null);
+fs.writeFile("./config/config.json", JSON.stringify(config, null, 4), () => {});

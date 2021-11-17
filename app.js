@@ -5,18 +5,19 @@ const bodyParser = require("body-parser");
 const favicon = require("serve-favicon");
 const https = require("https");
 const MongoStore = require("connect-mongo");
-const setRouting = require("./api/setRouting.js");
+const apiConstructor = require("./api");
 const config = require("./config/config.json");
+const checkSignIn = require("./api/helpers/checkSignIn.js");
 
 //run loaders
-require("./loaders/runLoaders.js");
+require("./loaders");
 
 //process args
 var port;
 process.argv.forEach((val, index) => {
 	if (val == "--port") {
 		try {
-			port = new Number(argv[index + 1]);
+			port = new Number(process.argv[index + 1]).valueOf();
 		} catch (e) {
 			console.error(e);
 		}
@@ -24,6 +25,17 @@ process.argv.forEach((val, index) => {
 });
 if (port == undefined) {
 	port = 4443;
+}
+
+//configure cors options
+function corsOptionsDelegate(req, callback) {
+	var corsOptions;
+	if (config.originAllowList.indexOf(req.header("Origin")) !== -1) {
+		corsOptions = { origin: true }; // reflect (enable) the requested origin in the CORS response
+	} else {
+		corsOptions = { origin: false }; // disable CORS for this request
+	}
+	callback(null, corsOptions); // callback expects two parameters: error and options
 }
 
 var app = express();
@@ -48,33 +60,16 @@ app.use(
 	})
 );
 
-//configure cors options
-var corsOptionsDelegate = function (req, callback) {
-	var corsOptions;
-	if (serverVar.originAllowList.indexOf(req.header("Origin")) !== -1) {
-		corsOptions = { origin: true }; // reflect (enable) the requested origin in the CORS response
-	} else {
-		corsOptions = { origin: false }; // disable CORS for this request
-	}
-	callback(null, corsOptions); // callback expects two parameters: error and options
-};
-
-//authorization check
-function checkSignIn(req, res, next) {
-	if (req.session.user) {
-		next(); //If authenticated session exists, proceed to page
-	} else {
-		res.redirect("/login");
-	}
-}
+//set cors for every request
+app.use(cors(corsOptionsDelegate));
 
 //serve index
-app.get("/", checkSignIn, cors(corsOptionsDelegate), function (req, res) {
+app.get("/", checkSignIn, function (req, res) {
 	res.sendFile("/html/index.html", { root: __dirname });
 });
 
 //set routing defined in "./api/"
-app = setRouting(app);
+app = apiConstructor(app);
 
 //https config
 var options = {
@@ -87,3 +82,7 @@ var server = https.createServer(options, app);
 server.listen(port, () => {
 	console.log("Server started on port: " + port.toString());
 });
+
+module.exports = {
+	checkSignIn: checkSignIn,
+};
