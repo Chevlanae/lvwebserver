@@ -1,3 +1,5 @@
+//planned response types, form-urlencoded, html
+
 /**
  * takes any message and/or errors and formats them into a response JSON
  * @param {string} message

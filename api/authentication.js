@@ -1,5 +1,5 @@
 const User = require("../models/userModel.js");
-const { jsonResponse } = require("./webWorkerResponses.js");
+const { jsonResponse } = require("./helpers/webWorkerResponses.js");
 const { body, matchedData } = require("express-validator");
 const checkSignIn = require("./helpers/checkSignIn.js");
 

@@ -1,6 +1,7 @@
-const config = require("../config/config.json");
 const pem = require("pem");
 const fs = require("fs");
+
+const config = JSON.parse(fs.readFileSync("./config/config.json", "utf-8"));
 
 function shuffleArray(array) {
 	////Shuffle array of session secrets
@@ -38,4 +39,4 @@ if (!config.SSL || (config.SSL.key == "" && config.SSL.cert == "")) {
 	});
 }
 
-fs.writeFile("./config/config.json", JSON.stringify(config, null, 4), () => {});
+fs.writeFileSync("./config/config.json", JSON.stringify(config, null, 4));
