@@ -1,6 +1,9 @@
 const nodemailer = require("nodemailer");
 const fs = require("fs");
-const config = require("../config/config.json");
+const getConfig = require("../services/getConfig.js");
+
+//init config
+const config = getConfig();
 
 var defaultSendMailOptions = {
 	from: config.emailConfig.defaultFromAddress,

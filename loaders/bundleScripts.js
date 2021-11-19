@@ -1,7 +1,10 @@
 const fsPromises = require("fs").promises;
-const config = require("../config/config.json");
+const getConfig = require("../services/getConfig.js");
 const { exec } = require("child_process");
 const fs = require("fs");
+
+//init config
+const config = getConfig();
 
 //Bundles index.js files in the specified rootDistPath and any child directories,
 //then places the output in static/bundles/ with the same path relative to rootDistPath, truncating any "scripts" directories and moving their contents up a directory.
@@ -21,17 +24,14 @@ async function bundleScripts(path) {
 				var relativePath = path.replace(rootDistPath, "");
 				var bundlePath = "static/bundles" + relativePath.slice(0, -7); // truncate "scripts" folder
 				var outputScriptPath = bundlePath + element.name;
-				var inputScriptPath =
-					rootDistPath.slice(2) + relativePath + "/" + element.name;
+				var inputScriptPath = rootDistPath.slice(2) + relativePath + "/" + element.name;
 
 				//if parent folder is not "scripts", skip this file
 				if (relativePath.slice(-7) != "scripts") {
 					return;
 				}
 				fs.mkdirSync("./" + bundlePath, { recursive: true }); //makes bundlePath directory if it does not exist
-				exec(
-					`npx browserify ${inputScriptPath} --s bundle > ${outputScriptPath}`
-				); //bundle script, then output to ./static/bundles
+				exec(`npx browserify ${inputScriptPath} --s bundle > ${outputScriptPath}`); //bundle script, then output to ./static/bundles
 			}
 		}
 	});

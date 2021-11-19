@@ -5,9 +5,13 @@ const bodyParser = require("body-parser");
 const favicon = require("serve-favicon");
 const https = require("https");
 const MongoStore = require("connect-mongo");
+const fs = require("fs");
 const apiConstructor = require("./api");
-const config = require("./config/config.json");
 const checkSignIn = require("./api/helpers/checkSignIn.js");
+const getConfig = require("./services/getConfig.js");
+
+//init config
+const config = getConfig();
 
 //run loaders
 require("./loaders");
@@ -42,6 +46,7 @@ var app = express();
 
 //app config
 app.use("/static", express.static("./static"));
+app.use(cors(corsOptionsDelegate));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(favicon(__dirname + "/static/images/favicon.ico"));
 app.use(
@@ -60,12 +65,9 @@ app.use(
 	})
 );
 
-//set cors for every request
-app.use(cors(corsOptionsDelegate));
-
 //serve index
 app.get("/", checkSignIn, function (req, res) {
-	res.sendFile("/html/index.html", { root: __dirname });
+	res.sendFile("/html/index/index.html", { root: __dirname });
 });
 
 //set routing defined in "./api/"
@@ -73,8 +75,8 @@ app = apiConstructor(app);
 
 //https config
 var options = {
-	key: config.SSL.key,
-	cert: config.SSL.cert,
+	key: fs.readFileSync(config.SSL.key),
+	cert: fs.readFileSync(config.SSL.cert),
 };
 
 var server = https.createServer(options, app);
