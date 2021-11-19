@@ -1,6 +1,9 @@
 const { MongoClient } = require("mongodb");
-const config = require("../config/config.json");
+const getConfig = require("../services/getConfig.js");
 const assert = require("assert");
+
+//init config
+const config = getConfig();
 
 //db init
 const dbClient = new MongoClient(config.dbURL);
