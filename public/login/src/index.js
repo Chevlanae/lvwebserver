@@ -1,4 +1,4 @@
-const needle = require("needle");
+const { postJSON } = require("app/webworkers/webWorker");
 const swal = require("sweetalert2");
 
 const origin = window.origin;

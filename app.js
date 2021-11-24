@@ -1,17 +1,19 @@
 const express = require("express");
 const session = require("express-session");
-const cors = require("cors");
+const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const favicon = require("serve-favicon");
+const checkSignIn = require("./middlware/checkSignIn");
+const rateLimiter = require("./middlware/rateLimiter");
+const cors = require("./middlware/cors");
 const https = require("https");
 const MongoStore = require("connect-mongo");
 const fs = require("fs");
 const apiConstructor = require("./api");
-const checkSignIn = require("./api/helpers/checkSignIn.js");
-const getConfig = require("./services/getConfig.js");
+const config = require("./services/getConfig.js");
 
-//init config
-const config = getConfig();
+//define app
+var app = express();
 
 //run loaders
 require("./loaders");
@@ -31,30 +33,13 @@ if (port == undefined) {
 	port = 4443;
 }
 
-//configure cors options
-function corsOptionsDelegate(req, callback) {
-	var corsOptions;
-	if (config.originAllowList.indexOf(req.header("Origin")) !== -1) {
-		corsOptions = { origin: true }; // reflect (enable) the requested origin in the CORS response
-	} else {
-		corsOptions = { origin: false }; // disable CORS for this request
-	}
-	callback(null, corsOptions); // callback expects two parameters: error and options
-}
-
-var app = express();
-
-//app config
-app.use("/static", express.static("./static"));
-app.use(cors(corsOptionsDelegate));
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(favicon(__dirname + "/static/images/favicon.ico"));
+//session config
 app.use(
 	session({
-		cookie: { secure: true, httpOnly: true, samesite: true, maxAge: 600000 },
+		cookie: { secure: true, httpOnly: true, samesite: true, maxAge: 600000, domain: config.domain },
 		resave: false,
-		saveUninitialized: true,
-		name: "server.sid",
+		saveUninitialized: false,
+		name: "sid",
 		secret: config.sessionSecrets,
 		store: MongoStore.create({
 			mongoUrl: config.dbURL,
@@ -65,13 +50,26 @@ app.use(
 	})
 );
 
-//serve index
-app.get("/", checkSignIn, function (req, res) {
-	res.sendFile("/html/index/index.html", { root: __dirname });
-});
+//define middleware
+app.use(cors); //define cors handler
+app.use(helmet()); //configure headers
+app.use(rateLimiter); //define rate limiter
+app.use(bodyParser.json({ limit: "5mb" })); //define body-parser
+app.use(favicon(__dirname + "/public/images/favicon.ico")); //serve favicon
 
 //set routing defined in "./api/"
 app = apiConstructor(app);
+
+//require sign in for home page
+app.use("/home/*", checkSignIn);
+
+//public files
+app.use("/", express.static("./public"));
+
+//route all unmatched URLs to '/home'
+app.all("*", checkSignIn, function (req, res) {
+	res.redirect("/home");
+});
 
 //https config
 var options = {
@@ -84,7 +82,3 @@ var server = https.createServer(options, app);
 server.listen(port, () => {
 	console.log("Server started on port: " + port.toString());
 });
-
-module.exports = {
-	checkSignIn: checkSignIn,
-};

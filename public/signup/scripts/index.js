@@ -1,4 +1,4 @@
-const needle = require("needle");
+const { postJSON } = require("app/webworkers/webWorkerRequests");
 const swal = require("sweetalert2");
 
 const origin = window.origin;
@@ -6,43 +6,43 @@ const origin = window.origin;
 var emailConfirmed = false;
 var passwordConfirmed = false;
 
-function signup() {
+async function signup() {
 	var email = document.getElementById("email").value,
 		username = document.getElementById("username").value,
 		password = document.getElementById("password").value;
 
 	if (emailConfirmed && passwordConfirmed) {
-		var url = origin + "/signup",
-			options = { json: true },
-			body = {
-				email: email,
-				username: username,
-				password: password,
-			};
+		var url = origin + "/signup";
 
-		needle.post(url, body, options, (err, res) => {
-			if (err) {
-				swal.fire({
-					title: "Error",
-					html: err.toString(),
-					icon: "error",
-				});
-			} else if (res) {
+		var body = {
+			email: email,
+			username: username,
+			password: password,
+		};
+
+		postJSON(url, body)
+			.then((response) => {
 				var errorString = "";
-				if ("errors" in res.body) {
+				if ("errors" in response) {
 					errorString = "<br><br><p>";
-					for (var error in res.body.errors) {
+					for (var error in response.errors) {
 						errorString = errorString + error.toString() + "<br>";
 					}
 					errorString = errorString + "</p>";
 				}
 				swal.fire({
 					title: "Error",
-					html: `${res.body.message}${errorString}`,
+					html: `${response.message}${errorString}`,
 					icon: "error",
 				});
-			}
-		});
+			})
+			.catch((e) => {
+				swal.fire({
+					title: "Error",
+					text: e.toString(),
+					icon: "error",
+				});
+			});
 	} else if (!emailConfirmed) {
 		swal.fire({
 			title: "Email fields do not match.",
@@ -66,14 +66,8 @@ function confirm(original, confirmed, msgbox) {
 		return;
 	} else if (originalElement.value != confirmedElement.value) {
 		msgbox.innerHTML = `<span style="color: red;"><strong>Fields do not match!</strong><span>`;
-		originalElement.setAttribute(
-			"style",
-			"border: 1px solid rgba(219, 33, 20, 1);"
-		);
-		confirmedElement.setAttribute(
-			"style",
-			"border: 1px solid rgba(219, 33, 20, 1);"
-		);
+		originalElement.setAttribute("style", "border: 1px solid rgba(219, 33, 20, 1);");
+		confirmedElement.setAttribute("style", "border: 1px solid rgba(219, 33, 20, 1);");
 
 		if (original == "email") {
 			emailConfirmed = false;

@@ -2,17 +2,20 @@
 	"dependencies": {
 		"argon2": "^0.28.2",
 		"body-parser": "^1.19.0",
-		"browserify": "^17.0.0",
 		"connect-mongo": "^4.6.0",
 		"cors": "^2.8.5",
+		"csurf": "^1.11.0",
 		"express": "^4.17.1",
 		"express-session": "^1.17.2",
 		"express-validator": "^6.13.0",
+		"helmet": "^4.6.0",
 		"mongodb": "^4.1.4",
-		"needle": "^3.0.0",
 		"nodemailer": "^6.7.0",
+		"rate-limiter-flexible": "^2.3.5",
 		"serve-favicon": "^2.5.0",
-		"sweetalert2": "^11.1.10"
+		"sweetalert2": "^11.1.10",
+		"webpack": "^5.64.2",
+		"webpack-cli": "^4.9.1"
 	},
 	"name": "http-file-browser",
 	"version": "1.0.0",

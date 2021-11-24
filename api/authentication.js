@@ -1,20 +1,48 @@
 const User = require("../models/userModel.js");
 const { jsonResponse } = require("./helpers/webWorkerResponses.js");
+const validateRequest = require("../middlware/validateRequest.js");
 const { body, matchedData } = require("express-validator");
-const checkSignIn = require("./helpers/checkSignIn.js");
-
-const rootDir = "./";
+const checkSignIn = require("../middlware/checkSignIn.js");
 
 function authentication(app) {
-	app.get("/signup", function (req, res) {
-		res.sendFile("/html/signup/index.html", { root: rootDir });
-	});
+	////LOGIN
+	app.post(
+		"/login",
+		body("username").exists().isString().trim().escape(),
+		body("password").exists().isString().trim(),
+		validateRequest,
+		function (req, res) {
+			var userData = matchedData(req, { locations: ["body"] });
+			console.log(req);
+			var userObj = new User(userData.username, userData.password);
 
+			userObj.authenticate().then(() => {
+				if (userObj.isAuthenticated) {
+					req.session.user = userObj.username;
+					var originURL = "/";
+					if (req.session.originURL) {
+						originURL = req.session.originURL;
+					}
+
+					return res.redirect(originURL);
+				} else {
+					if (userObj.invalidUsername) {
+						return res.json(jsonResponse("Invalid Username"));
+					} else if (userObj.invalidPassword) {
+						return res.json(jsonResponse("Invalid Password"));
+					}
+				}
+			});
+		}
+	);
+
+	////SIGNUP
 	app.post(
 		"/signup",
 		body("email").exists().isEmail(),
-		body("username").exists().isString().escape(),
-		body("password").exists().isString(),
+		body("username").exists().isString().trim().escape(),
+		body("password").exists().isString().trim(),
+		validateRequest,
 		function (req, res) {
 			var userData = matchedData(req, { locations: ["body"] });
 
@@ -23,58 +51,23 @@ function authentication(app) {
 			userObj.email = userData.email;
 
 			userObj.save().then(
-				//resolved
-				(user) => {
-					if (user.isAuthenticated) {
-						req.session.user = user.username;
-						var originURL = "/";
-						if (req.session.originURL) {
-							originURL = req.session.originURL; //if user came from a specific page, set redirect to originalURL
-						}
-						res.redirect(originURL);
-					}
+				//user DOES NOT exist in db
+				() => {
+					res.redirect("/login");
 				},
-				//rejected
-				(user) => {
-					if (user.isAuthenticated) {
-						res.redirect("/");
-					} else {
-						res.status(400).json(jsonResponse("User already exists."));
-					}
+				//user DOES exist in db
+				() => {
+					res.status(400).json(jsonResponse("User already exists."));
 				}
 			);
 		}
 	);
 
-	app.get("/login", function (req, res) {
-		res.sendFile("/html/login/index.html", { root: rootDir });
-	});
+	////CONFIRM EMAIL
+	app.get("/signup/confirm", checkSignIn);
 
-	app.post("/login", body("username").exists().isString().escape(), body("password").exists().isString(), function (req, res) {
-		var userData = matchedData(req, { locations: ["body"] });
-
-		var userObj = new User(userData.username, userData.password);
-
-		userObj.authenticate().then(() => {
-			if (userObj.isAuthenticated) {
-				req.session.user = userObj.username;
-				var originURL = "/";
-				if (req.session.originURL) {
-					originURL = req.session.originURL;
-				}
-				res.redirect(302, originURL);
-			} else {
-				res.status(400).json(jsonResponse("Invalid username or password"));
-			}
-		});
-	});
-
-	app.get("/signup/confirm", checkSignIn, function (req, res) {
-		res.send("not implemented");
-	});
-
-	app.post("/signup/confirm", body("emailConfirmToken").exists, function (req, res) {
-		res.json(jsonResponse("not implemented", Error("NOT IMPLEMENTED")));
+	app.post("/signup/confirm", checkSignIn, body("emailConfirmToken").exists(), function (req, res) {
+		return res.json(jsonResponse("not implemented", Error("NOT IMPLEMENTED")));
 	});
 
 	return app;
