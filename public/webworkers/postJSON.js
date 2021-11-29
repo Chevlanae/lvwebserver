@@ -7,5 +7,8 @@ async function postJSON(url = "", data = {}) {
 		referrerPolicy: "origin",
 		body: JSON.stringify(data),
 	});
+
 	return response.json();
 }
+
+module.exports = postJSON;

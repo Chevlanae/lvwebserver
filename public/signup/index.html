@@ -10,7 +10,7 @@
             <tr>
                 <td>
                     <h2>confirmEmail</h2>
-                    <input id="confirmEmail" oninput="bundle.confirm('email', 'confirmEmail', 'emailMessage')" type="text"></input><br><br>
+                    <input id="confirmEmail" type="text"></input><br><br>
                 </td>
             </tr>
             <tr>
@@ -28,15 +28,15 @@
             <tr>
                 <td>
                     <h2>confirmPassword</h2>
-                    <input id="confirmPassword" oninput="bundle.confirm('password', 'confirmPassword', 'passwordMessage')" type="password"></input><br><br>
+                    <input id="confirmPassword" type="password"></input><br><br>
                 </td>
             </tr>
             <tr>
                 <td>
-                    <input type="button" value="Sign Up" onclick="bundle.signup()"></input>
+                    <input type="button" value="Sign Up" id="submit"></input>
                 </td>
             </tr>
         </table>
     </body>
-    <script type="text/javascript" src="/static/bundles/signup/index.js"></script>
+    <script type="text/javascript" src="/signup/dist/index.js"></script>
 </html>

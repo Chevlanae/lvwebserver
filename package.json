@@ -17,11 +17,12 @@
 		"webpack": "^5.64.2",
 		"webpack-cli": "^4.9.1"
 	},
-	"name": "http-file-browser",
+	"name": "lvwebserver",
 	"version": "1.0.0",
-	"main": "app.js",
+	"private": "true",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "webpack"
 	},
 	"author": "Leah Vance",
 	"license": "ISC",
@@ -30,11 +31,11 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Chevlanae/http-file-server.git"
+		"url": "git+https://github.com/Chevlanae/lvwebserver.git"
 	},
 	"bugs": {
-		"url": "https://github.com/Chevlanae/http-file-server/issues"
+		"url": "https://github.com/Chevlanae/lvwebserver/issues"
 	},
-	"homepage": "https://github.com/Chevlanae/http-file-server#readme",
+	"homepage": "https://github.com/Chevlanae/lvwebserver#readme",
 	"description": "Personal webserver"
 }

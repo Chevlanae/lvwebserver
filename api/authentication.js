@@ -13,7 +13,7 @@ function authentication(app) {
 		validateRequest,
 		function (req, res) {
 			var userData = matchedData(req, { locations: ["body"] });
-			console.log(req);
+
 			var userObj = new User(userData.username, userData.password);
 
 			userObj.authenticate().then(() => {

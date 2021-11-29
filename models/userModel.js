@@ -59,32 +59,28 @@ class User {
 				users
 					.find({ username: this.username })
 					.forEach(() => {
-						this.alreadyExists = true; // if there are ANY existing entries, this.alreadyExists is set to true
+						reject(); //if there are ANY existing entries, reject promise
 					})
 					.then(() => {
-						if (!this.alreadyExists) {
-							// if user does not already exist, create new DB entry and authenticate new user
-							argon2
-								.hash(this.password, {
-									//hash password
-									type: argon2.argon2id,
-									memoryCost: 2 ** 16,
-								})
-								.then((hashedPassword) => {
-									//insert new user into db, then authenticate
-									var newUser = {
-										email: this.email,
-										username: this.username,
-										password: hashedPassword,
-									};
+						//create new DB entry and authenticate new user
+						argon2
+							.hash(this.password, {
+								//hash password
+								type: argon2.argon2id,
+								memoryCost: 2 ** 16,
+							})
+							.then((hashedPassword) => {
+								//insert new user into db, then authenticate
+								var newUser = {
+									email: this.email,
+									username: this.username,
+									password: hashedPassword,
+								};
 
-									users.insertOne(newUser).then(() => {
-										resolve();
-									});
+								users.insertOne(newUser).then(() => {
+									resolve();
 								});
-						} else {
-							reject();
-						}
+							});
 					});
 			});
 		});

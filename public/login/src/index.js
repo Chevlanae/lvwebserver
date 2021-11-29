@@ -1,5 +1,5 @@
-const { postJSON } = require("app/webworkers/webWorker");
-const swal = require("sweetalert2");
+import * as swal from "sweetalert2";
+import * as postJSON from "../../webworkers/postJSON.js";
 
 const origin = window.origin;
 
@@ -19,36 +19,32 @@ function login() {
 		return;
 	}
 
-	var endpoint = origin + "/login";
-	var options = { json: true };
+	var url = origin + "/login";
 	var body = {
 		username: username,
 		password: password,
 	};
 
-	needle.post(endpoint, body, options, (err, res) => {
-		if (err) {
-			swal.fire("Error", err.toString(), "error");
-		}
-
-		if (res) {
-			if ("errors" in res.body) {
-				var errorString = "<p>";
-				for (var error in res.body.errors) {
-					errorString = errorString + error.toString() + "<br>";
-				}
-				errorString = errorString + "</p>";
-
-				swal.fire({
-					title: "Error",
-					html: errorString,
-					icon: "error",
-				});
+	postJSON(url, body).then((body) => {
+		if (body.errors.length != 0) {
+			var errorString = "<p>";
+			for (var error in res.body.errors) {
+				errorString = errorString + error.toString() + "<br>";
 			}
+			errorString = errorString + "</p>";
+
+			swal.fire({
+				title: "Error",
+				html: errorString,
+				icon: "error",
+			});
+		} else {
+			swal.fire({
+				title: body.message,
+				icon: "error",
+			});
 		}
 	});
 }
 
-module.exports = {
-	login: login,
-};
+document.getElementById("submit").onclick = login;

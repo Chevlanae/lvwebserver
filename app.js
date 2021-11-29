@@ -33,13 +33,16 @@ if (port == undefined) {
 	port = 4443;
 }
 
+//rate limiter
+app.use(rateLimiter);
+
 //session config
 app.use(
 	session({
 		cookie: { secure: true, httpOnly: true, samesite: true, maxAge: 600000, domain: config.domain },
 		resave: false,
 		saveUninitialized: false,
-		name: "sid",
+		name: "chevlanae.com.id",
 		secret: config.sessionSecrets,
 		store: MongoStore.create({
 			mongoUrl: config.dbURL,
@@ -50,10 +53,9 @@ app.use(
 	})
 );
 
-//define middleware
-app.use(cors); //define cors handler
+//middleware
+app.use(cors); //cors handler
 app.use(helmet()); //configure headers
-app.use(rateLimiter); //define rate limiter
 app.use(bodyParser.json({ limit: "5mb" })); //define body-parser
 app.use(favicon(__dirname + "/public/images/favicon.ico")); //serve favicon
 

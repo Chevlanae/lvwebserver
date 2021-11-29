@@ -1,59 +1,47 @@
-const { postJSON } = require("app/webworkers/webWorkerRequests");
-const swal = require("sweetalert2");
+import * as postJSON from "../../webworkers/postJSON.js";
+import * as swal from "sweetalert2";
 
 const origin = window.origin;
 
 var emailConfirmed = false;
 var passwordConfirmed = false;
 
-async function signup() {
+function signup() {
 	var email = document.getElementById("email").value,
 		username = document.getElementById("username").value,
 		password = document.getElementById("password").value;
 
-	if (emailConfirmed && passwordConfirmed) {
-		var url = origin + "/signup";
+	var url = origin + "/signup";
 
-		var body = {
-			email: email,
-			username: username,
-			password: password,
-		};
+	var body = {
+		email: email,
+		username: username,
+		password: password,
+	};
 
-		postJSON(url, body)
-			.then((response) => {
-				var errorString = "";
-				if ("errors" in response) {
-					errorString = "<br><br><p>";
-					for (var error in response.errors) {
-						errorString = errorString + error.toString() + "<br>";
-					}
-					errorString = errorString + "</p>";
+	postJSON(url, body)
+		.then((response) => {
+			var errorString = "";
+			if ("errors" in response) {
+				errorString = "<br><br><p>";
+				for (var error in response.errors) {
+					errorString = errorString + error.toString() + "<br>";
 				}
-				swal.fire({
-					title: "Error",
-					html: `${response.message}${errorString}`,
-					icon: "error",
-				});
-			})
-			.catch((e) => {
-				swal.fire({
-					title: "Error",
-					text: e.toString(),
-					icon: "error",
-				});
+				errorString = errorString + "</p>";
+			}
+			swal.fire({
+				title: "Error",
+				html: `${response.message}${errorString}`,
+				icon: "error",
 			});
-	} else if (!emailConfirmed) {
-		swal.fire({
-			title: "Email fields do not match.",
-			icon: "error",
+		})
+		.catch((e) => {
+			swal.fire({
+				title: "Error",
+				text: e.toString(),
+				icon: "error",
+			});
 		});
-	} else if (!passwordConfirmed) {
-		swal.fire({
-			title: "Password fields do not match.",
-			icon: "error",
-		});
-	}
 }
 
 function confirm(original, confirmed, msgbox) {
@@ -88,8 +76,4 @@ function confirm(original, confirmed, msgbox) {
 }
 
 //event listeners
-
-module.exports = {
-	signup: signup,
-	confirm: confirm,
-};
+document.getElementById("submit").onclick = signup;
