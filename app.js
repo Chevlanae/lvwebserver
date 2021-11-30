@@ -3,9 +3,9 @@ const session = require("express-session");
 const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const favicon = require("serve-favicon");
-const checkSignIn = require("./middlware/checkSignIn");
-const rateLimiter = require("./middlware/rateLimiter");
-const cors = require("./middlware/cors");
+const checkSignIn = require("./middleware/checkSignIn");
+const rateLimiter = require("./middleware/rateLimiter");
+const cors = require("./middleware/cors");
 const https = require("https");
 const MongoStore = require("connect-mongo");
 const fs = require("fs");
@@ -70,7 +70,7 @@ app.use("/", express.static("./public"));
 
 //route all unmatched URLs to '/home'
 app.all("*", checkSignIn, function (req, res) {
-	res.redirect("/home");
+	res.redirect("/home/");
 });
 
 //https config

@@ -1,8 +1,8 @@
 const User = require("../models/userModel.js");
-const { jsonResponse } = require("./helpers/webWorkerResponses.js");
-const validateRequest = require("../middlware/validateRequest.js");
+const { jsonResponse } = require("./helpers/responses.js");
+const validateRequest = require("../middleware/validateRequest.js");
 const { body, matchedData } = require("express-validator");
-const checkSignIn = require("../middlware/checkSignIn.js");
+const checkSignIn = require("../middleware/checkSignIn.js");
 
 function authentication(app) {
 	////LOGIN
@@ -16,23 +16,31 @@ function authentication(app) {
 
 			var userObj = new User(userData.username, userData.password);
 
-			userObj.authenticate().then(() => {
-				if (userObj.isAuthenticated) {
-					req.session.user = userObj.username;
-					var originURL = "/";
-					if (req.session.originURL) {
-						originURL = req.session.originURL;
-					}
+			userObj
+				.authenticate()
+				.then(
+					() => {
+						req.session.user = userObj.username;
+						var originURL = "/";
+						if (req.session.originURL) {
+							originURL = req.session.originURL;
+						}
 
-					return res.redirect(originURL);
-				} else {
-					if (userObj.invalidUsername) {
-						return res.json(jsonResponse("Invalid Username"));
-					} else if (userObj.invalidPassword) {
-						return res.json(jsonResponse("Invalid Password"));
+						res.redirect(originURL);
+					},
+					(result) => {
+						if (result.invalidUsername) {
+							res.json(jsonResponse("Authentication Error", "Invalid Username"));
+						} else if (result.invalidPassword) {
+							res.json(jsonResponse("Authentication Error", "Invalid Password"));
+						} else {
+							res.status(500).json(jsonResponse("Internal Server Error", "Authentication Error: Unknown cause."));
+						}
 					}
-				}
-			});
+				)
+				.catch((e) => {
+					res.status(500).json(jsonResponse("Internal Server Error", e));
+				});
 		}
 	);
 
@@ -50,16 +58,21 @@ function authentication(app) {
 
 			userObj.email = userData.email;
 
-			userObj.save().then(
-				//user DOES NOT exist in db
-				() => {
-					res.redirect("/login");
-				},
-				//user DOES exist in db
-				() => {
-					res.status(400).json(jsonResponse("User already exists."));
-				}
-			);
+			userObj
+				.save()
+				.then(
+					//user DOES NOT exist in db
+					() => {
+						res.redirect("/login/");
+					},
+					//user DOES exist in db
+					() => {
+						res.status(400).json(jsonResponse("DB Error", "User already exists."));
+					}
+				)
+				.catch((e) => {
+					res.status(500).json(jsonResponse("Internal Server Error", e));
+				});
 		}
 	);
 

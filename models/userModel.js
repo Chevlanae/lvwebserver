@@ -10,10 +10,7 @@ class User {
 		this.email = email;
 		this.username = username;
 		this.password = password;
-		this.alreadyExists = false;
 		this.isAuthenticated = false;
-		this.invalidUsername = false;
-		this.invalidPassword = false;
 	}
 
 	/**
@@ -21,25 +18,26 @@ class User {
 	 * @returns {Promise<void>}
 	 */
 	authenticate() {
-		return new Promise((resolve) => {
+		return new Promise((resolve, reject) => {
 			dbClient.connect((err) => {
 				assert.equal(null, err); //die if bad
 
 				var users = dbClient.db("lvwebserver").collection("users");
 				users.findOne({ username: this.username }).then((queriedUser) => {
+					var result = { invalidUsername: false, invalidPassword: false };
 					if (queriedUser != null) {
 						argon2.verify(queriedUser.password, this.password).then((verified) => {
 							if (verified) {
 								this.isAuthenticated = true;
 								resolve();
 							} else {
-								this.invalidPassword = true;
-								resolve();
+								result.invalidPassword = true;
+								reject(result);
 							}
 						});
 					} else {
-						this.invalidUsername = true;
-						resolve();
+						result.invalidUsername = true;
+						reject(result);
 					}
 				});
 			});
