@@ -7,7 +7,7 @@ function checkSignIn(req, res, next) {
 		next(); //If authenticated session exists, proceed to page
 	} else {
 		req.session.originURL = req.originURL; //set originURL for redirect whenever user is authenticated
-		res.redirect("/login/");
+		res.redirect("/auth/login/");
 	}
 }
 

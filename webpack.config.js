@@ -3,20 +3,20 @@ const path = require("path");
 module.exports = [
 	{
 		name: "login",
-		entry: "./public/login/src/index.js",
+		entry: "./views/auth/login/src/index.js",
 		mode: "production",
 		output: {
-			filename: "index.js",
-			path: path.resolve(__dirname, "public/login/dist/"),
+			filename: "login.js",
+			path: path.resolve(__dirname, "public/scripts/auth/"),
 		},
 	},
 	{
 		name: "signup",
-		entry: "./public/signup/src/index.js",
+		entry: "./views/auth/signup/src/index.js",
 		mode: "production",
 		output: {
-			filename: "index.js",
-			path: path.resolve(__dirname, "public/signup/dist/"),
+			filename: "signup.js",
+			path: path.resolve(__dirname, "public/scripts/auth/"),
 		},
 	},
 ];

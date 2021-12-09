@@ -1,4 +1,4 @@
-import postJSON from "../../helpers/postJSON.js";
+import postJSON from "../../../helpers/postJSON.js";
 import * as swal from "sweetalert2";
 
 const origin = window.origin;
@@ -35,8 +35,7 @@ function confirmed() {
 }
 
 function signup() {
-	var conf = confirmed();
-	if (conf.length != 0) {
+	if (confirmed().length != 0) {
 		var eString = "<p>";
 		for (var e of conf) {
 			eString = `${eString} ${e} fields do not match.<br>`;
@@ -46,18 +45,19 @@ function signup() {
 			title: eString,
 			icon: "error",
 		});
-		return;
+	} else {
+		var email = document.getElementById("email").value,
+			username = document.getElementById("username").value,
+			password = document.getElementById("password").value,
+			csrfToken = document.getElementById("csrf").value;
+
+		postJSON(origin + "/auth/signup", {
+			email: email,
+			username: username,
+			password: password,
+			_csrf: csrfToken,
+		});
 	}
-
-	var email = document.getElementById("email").value,
-		username = document.getElementById("username").value,
-		password = document.getElementById("password").value;
-
-	postJSON(origin + "/signup", {
-		email: email,
-		username: username,
-		password: password,
-	});
 }
 
 //event listeners

@@ -1,0 +1,21 @@
+
+html(lang="en")
+    body(style="text-align: center; position: relative; padding:10em;")
+        h1 Email 
+        input(type="text" id="email")
+        | <br />
+        h1 Confirm Email 
+        input(type="text" id="confirmEmail")
+        | <br />
+        h1 Username 
+        input(type="text" id="username")
+        | <br />
+        h1 Password 
+        input(type="password" id="password")
+        | <br />
+        h1 Confirm Password 
+        input(type="password" id="confirmPassword")
+        |<br /><br />
+        input(type="button" id="submit" value="Sign Up")
+        input(type="hidden" id="csrf" value=csrfToken)
+        script(src="/public/signup/dist/index.js")

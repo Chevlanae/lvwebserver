@@ -1,15 +1,13 @@
+const https = require("https");
+const fs = require("fs");
 const express = require("express");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const favicon = require("serve-favicon");
-const checkSignIn = require("./middleware/checkSignIn");
-const rateLimiter = require("./middleware/rateLimiter");
-const cors = require("./middleware/cors");
-const https = require("https");
-const MongoStore = require("connect-mongo");
-const fs = require("fs");
-const apiConstructor = require("./api");
+const middleware = require("./middleware");
+const rootRouter = require("./routing");
 const config = require("./services/getConfig.js");
 
 //define app
@@ -29,19 +27,18 @@ process.argv.forEach((val, index) => {
 		}
 	}
 });
-if (port == undefined) {
-	port = 4443;
-}
+
+port = port === undefined ? 4443 : port;
 
 //rate limiter
-app.use(rateLimiter);
+app.use(middleware.rateLimiter);
 
 //session config
 app.use(
 	session({
 		cookie: { secure: true, httpOnly: true, samesite: true, maxAge: 600000, domain: config.domain },
 		resave: false,
-		saveUninitialized: false,
+		saveUninitialized: true,
 		name: "chevlanae.com.id",
 		secret: config.sessionSecrets,
 		store: MongoStore.create({
@@ -54,22 +51,26 @@ app.use(
 );
 
 //middleware
-app.use(cors); //cors handler
+app.use(middleware.cors); //cors handler
 app.use(helmet()); //configure headers
 app.use(bodyParser.json({ limit: "5mb" })); //define body-parser
 app.use(favicon(__dirname + "/public/images/favicon.ico")); //serve favicon
 
-//set routing defined in "./api/"
-app = apiConstructor(app);
+//set views
+app.set("view engine", "pug");
+app.set("views", "./views");
+
+//set routing
+app.use("/", rootRouter);
 
 //require sign in for home page
-app.use("/home/*", checkSignIn);
+app.use("/home/*", middleware.authCheck);
 
 //public files
-app.use("/", express.static("./public"));
+app.use("/public", express.static("./public"));
 
 //route all unmatched URLs to '/home'
-app.all("*", checkSignIn, function (req, res) {
+app.all("*", middleware.authCheck, function (req, res) {
 	res.redirect("/home/");
 });
 

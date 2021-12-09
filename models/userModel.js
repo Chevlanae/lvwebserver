@@ -20,24 +20,32 @@ class User {
 	authenticate() {
 		return new Promise((resolve, reject) => {
 			dbClient.connect((err) => {
-				assert.equal(null, err); //die if bad
+				//throw assertion error if there is a DB connection error
+				assert.equal(null, err);
 
+				//init "user" collection
 				var users = dbClient.db("lvwebserver").collection("users");
+
+				//query username
 				users.findOne({ username: this.username }).then((queriedUser) => {
+					//init rejection result
 					var result = { invalidUsername: false, invalidPassword: false };
+
+					//if user exists in DB
 					if (queriedUser != null) {
+						//verify hash
 						argon2.verify(queriedUser.password, this.password).then((verified) => {
 							if (verified) {
 								this.isAuthenticated = true;
-								resolve();
+								resolve(); //if verified, resolve
 							} else {
 								result.invalidPassword = true;
-								reject(result);
+								reject(result); //else, reject and return "result"
 							}
 						});
 					} else {
 						result.invalidUsername = true;
-						reject(result);
+						reject(result); //else, reject and return "result"
 					}
 				});
 			});
@@ -51,16 +59,20 @@ class User {
 	save() {
 		return new Promise((resolve, reject) => {
 			dbClient.connect((err) => {
-				assert.equal(null, err); //die if bad
+				//throw assertion error if there is a DB connection error
+				assert.equal(null, err);
 
+				//init "user" collection
 				var users = dbClient.db("lvwebserver").collection("users");
+
+				//query username
 				users
 					.find({ username: this.username })
 					.forEach(() => {
 						reject(); //if there are ANY existing entries, reject promise
 					})
 					.then(() => {
-						//create new DB entry and authenticate new user
+						//hash given password, then insert new DB entry
 						argon2
 							.hash(this.password, {
 								//hash password
@@ -68,13 +80,12 @@ class User {
 								memoryCost: 2 ** 16,
 							})
 							.then((hashedPassword) => {
-								//insert new user into db, then authenticate
+								//insert new user into db
 								var newUser = {
 									email: this.email,
 									username: this.username,
 									password: hashedPassword,
 								};
-
 								users.insertOne(newUser).then(() => {
 									resolve();
 								});

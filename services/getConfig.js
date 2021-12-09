@@ -61,11 +61,11 @@ function getConfig() {
 
 		//set session secrets
 		for (var i = 0; i < 11; i++) {
-			defaultConfig.sessionSecrets.push(generateToken(32));
+			defaultConfig.sessionSecrets.push(generateToken(128));
 		}
 
 		//set session store secret
-		defaultConfig.storeSecret = generateToken(40);
+		defaultConfig.storeSecret = generateToken(256);
 
 		fs.mkdirSync(configDir);
 		fs.writeFileSync(configDir + "/config", JSON.stringify(defaultConfig, null, 4));

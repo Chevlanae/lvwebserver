@@ -1,0 +1,15 @@
+html(lang="en") 
+    body(style="text-align: center; position: relative; padding:15em;")   
+        h1 Username 
+        input(type="text" id="username")
+        | <br />
+        h1 Password
+        input(type="password" id="password")
+        | <br /><br />
+        input(type="button" value="Login" id="submit")
+        input(type="hidden" id="csrf" value=csrfToken)
+        |<br /><br />
+        |Or 
+        |<br /><br />
+        a(href="/auth/signup") Signup
+        script(src="/public/login/dist/index.js")
