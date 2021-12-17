@@ -12,7 +12,7 @@
 		"needle": "^3.0.0",
 		"nodemailer": "^6.7.0",
 		"serve-favicon": "^2.5.0",
-		"sweetalert2": "^11.1.10"
+		"sweetalert2": "^11.2.1"
 	},
 	"name": "http-file-browser",
 	"version": "1.0.0",
