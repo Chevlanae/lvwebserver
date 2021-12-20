@@ -1,4 +1,4 @@
-import postJSON from "../../../helpers/postJSON.js";
+import postJSON from "../../../helperScripts/postJSON.js";
 import * as swal from "sweetalert2";
 
 const origin = window.origin;
@@ -8,34 +8,35 @@ function confirmed() {
 		confirmEmail = document.getElementById("confirmEmail"),
 		password = document.getElementById("password"),
 		confirmPassword = document.getElementById("confirmPassword"),
-		redborder = "border: 1px solid rgba(219, 33, 20, 1);",
+		redborder = "1px solid rgba(219, 33, 20, 1)",
 		emailConfirmed = email.value === confirmEmail.value,
 		passwordConfirmed = password.value === confirmPassword.value,
 		notConfirmed = [];
 
 	if (!emailConfirmed) {
-		email.setAttribute("style", redborder);
-		confirmEmail.setAttribute("style", redborder);
+		email.style.border = redborder;
+		confirmEmail.style.border = redborder;
 		notConfirmed.push("Email");
 	} else {
-		email.setAttribute("style", "");
-		confirmEmail.setAttribute("style", "");
+		email.style.border = "";
+		confirmEmail.style.border = "";
 	}
 
 	if (!passwordConfirmed) {
-		password.setAttribute("style", redborder);
-		confirmPassword.setAttribute("style", redborder);
+		password.style.border = redborder;
+		confirmPassword.style.border = redborder;
 		notConfirmed.push("Password");
 	} else {
-		password.setAttribute("style", "");
-		confirmPassword.setAttribute("style", "");
+		password.style.border = "";
+		confirmPassword.style.border = "";
 	}
 
 	return notConfirmed;
 }
 
 function signup() {
-	if (confirmed().length != 0) {
+	var conf = confirmed();
+	if (conf.length != 0) {
 		var eString = "<p>";
 		for (var e of conf) {
 			eString = `${eString} ${e} fields do not match.<br>`;

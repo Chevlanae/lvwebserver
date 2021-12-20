@@ -6,8 +6,8 @@ html(lang="en")
         meta(name="viewport" content="width=device-width, initial-scale=1")
     body
         div(class="centered")
-            h1(style="text-align: center;") Login
-            div(class="container responsive" style="text-align: center; height: 400px; width: 400px;")
+            h1(style="text-align: center;") Admin
+            div(class="container responsive" style="text-align: center; height: 300px; width: 400px;")
                 h2 Username
                 input(type="text" id="username")
                 | <br />
@@ -17,8 +17,4 @@ html(lang="en")
                 div(id="submit" class="button") Login
                     div(id="underline") 
                 input(type="hidden" id="csrf" value=csrfToken)
-                |<br /><br />
-                |Or 
-                |<br /><br />
-                a(href="/auth/signup") Signup
-        script(src="/public/scripts/auth/login.js")
+        script(src="/public/scripts/admin/admin.js")

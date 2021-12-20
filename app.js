@@ -37,7 +37,7 @@ app.use(middleware.rateLimiter);
 app.use(
 	session({
 		cookie: { secure: true, httpOnly: true, samesite: true, maxAge: 600000, domain: config.domain },
-		resave: false,
+		resave: true,
 		saveUninitialized: true,
 		name: "chevlanae.com.id",
 		secret: config.sessionSecrets,
@@ -63,15 +63,12 @@ app.set("views", "./views");
 //set routing
 app.use("/", rootRouter);
 
-//require sign in for home page
-app.use("/home/*", middleware.authCheck);
-
 //public files
 app.use("/public", express.static("./public"));
 
 //route all unmatched URLs to '/home'
-app.all("*", middleware.authCheck, function (req, res) {
-	res.redirect("/home/");
+app.get("*", function (req, res) {
+	res.redirect("/home");
 });
 
 //https config

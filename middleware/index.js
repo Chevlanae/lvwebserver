@@ -1,13 +1,13 @@
-const authenticationCheck = require("./authenticationCheck");
+const authenticationCheck = require("./authCheck");
+const adminAuthCheck = require("./adminAuthCheck");
 const cors = require("./cors");
 const rateLimiter = require("./cors");
 const validateRequest = require("./validateRequest");
 
-class middleware {
-	static authCheck = authenticationCheck;
-	static cors = cors;
-	static rateLimiter = rateLimiter;
-	static validateRequest = validateRequest;
-}
-
-module.exports = middleware;
+module.exports = {
+	authCheck: authenticationCheck,
+	adminAuthCheck: adminAuthCheck,
+	cors: cors,
+	rateLimiter: rateLimiter,
+	validateRequest: validateRequest,
+};

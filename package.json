@@ -15,6 +15,7 @@
 		"rate-limiter-flexible": "^2.3.5",
 		"serve-favicon": "^2.5.0",
 		"sweetalert2": "^11.1.10",
+		"uuid-mongodb": "^2.4.5",
 		"webpack": "^5.64.2",
 		"webpack-cli": "^4.9.1"
 	},

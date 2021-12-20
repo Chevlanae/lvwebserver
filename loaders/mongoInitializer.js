@@ -10,5 +10,7 @@ dbClient.connect((err) => {
 
 	const db = dbClient.db("lvwebserver");
 	const Users = db.collection("users", { strict: true });
-	Users.createIndex("username").then(() => dbClient.close());
+	const userWhitelist = db.collection("userWhitelist", { strict: true });
+	const adminWhitelist = db.collection("adminWhitelist", { strict: true });
+	Users.createIndex("username");
 });

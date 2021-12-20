@@ -8,27 +8,27 @@ function parseResponse(response) {
 	response
 		.json()
 		.then((body) => {
-			if (body.errors.length != 0) {
+			if (body.errors.length > 0) {
 				var errorString = "<p>";
-				for (var error in response.errors) {
-					errorString = errorString + error.toString() + "<br>";
+				for (var error of body.errors) {
+					errorString = errorString + error + "<br>";
 				}
 				errorString = errorString + "</p>";
 
 				swal.fire({
-					title: "Error",
-					html: `<strong>${response.message}</strong><br><br>${errorString}`,
+					title: body.message,
+					html: errorString,
 					icon: "error",
 				});
 			} else {
 				swal.fire({
-					text: `${response.message}`,
+					text: `${body.message}`,
 				});
 			}
 		})
 		.catch((e) => {
 			swal.fire({
-				title: "Error",
+				title: "Javascript Error",
 				text: e.toString(),
 				icon: "error",
 			});

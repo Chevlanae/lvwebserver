@@ -1,4 +1,4 @@
-import postJSON from "../../../helperScripts/postJSON.js";
+import postJSON from "../../helperScripts/postJSON.js";
 
 const origin = window.origin;
 
@@ -7,7 +7,7 @@ function login() {
 		password = document.getElementById("password").value,
 		csrfToken = document.getElementById("csrf").value;
 
-	postJSON(origin + "/auth/login", {
+	postJSON(origin + "/admin", {
 		username: username,
 		password: password,
 		_csrf: csrfToken,

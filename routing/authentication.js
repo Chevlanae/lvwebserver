@@ -1,6 +1,6 @@
-const User = require("../models/userModel.js");
+const { user, whitelist } = require("../models");
 const { jsonResponse } = require("./helpers/responses.js");
-const middleware = require("../middleware");
+const { validateRequest } = require("../middleware");
 const { body, matchedData } = require("express-validator");
 const express = require("express");
 const csurf = require("csurf");
@@ -18,28 +18,24 @@ router.post(
 	"/login",
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
-	middleware.validateRequest,
+	validateRequest,
 	function (req, res) {
 		var userData = matchedData(req, { locations: ["body"] });
 
-		var userObj = new User(userData.username, userData.password);
+		var userObj = new user();
 
 		userObj
-			.authenticate()
+			.authenticate(userData.username, userData.password)
 			.then(
 				//authentication successful
-				() => {
-					if (userObj.isAuthenticated) {
-						req.session.user = userObj.username;
-						var originURL = "/";
-						if (req.session.originURL) {
-							originURL = req.session.originURL;
-						}
-
-						res.redirect(originURL);
-					} else {
-						res.status(500).json(jsonResponse("Authentication Error", "Unknown cause"));
+				(doc) => {
+					req.session.user = doc.username;
+					var originURL = "/home";
+					if (req.session.originURL) {
+						originURL = req.session.originURL;
 					}
+
+					res.redirect(originURL);
 				},
 				//authentication failed
 				(result) => {
@@ -68,20 +64,18 @@ router.post(
 	body("email").exists().isEmail(),
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
-	middleware.validateRequest,
+	validateRequest,
 	function (req, res) {
 		var userData = matchedData(req, { locations: ["body"] });
 
-		var userObj = new User(userData.username, userData.password);
-
-		userObj.email = userData.email;
+		var userObj = new user();
 
 		userObj
-			.save()
+			.save(userData.email, userData.username, userData.password)
 			.then(
 				//user DOES NOT exist in db
-				() => {
-					res.redirect("/login/");
+				(doc) => {
+					res.redirect("/auth/login");
 				},
 				//user DOES exist in db
 				() => {
@@ -99,7 +93,7 @@ router.get("/signup/confirm", csurf(), function (req, res) {
 	res.send("not implemented");
 });
 
-router.post("/signup/confirm", middleware.authCheck, body("emailConfirmToken").exists(), function (req, res) {
+router.post("/signup/confirm", body("emailConfirmToken").exists(), function (req, res) {
 	return res.json(jsonResponse("not implemented", Error("NOT IMPLEMENTED")));
 });
 
