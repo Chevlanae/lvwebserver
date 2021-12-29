@@ -1,5 +1,5 @@
 const { user, whitelist } = require("../models");
-const { jsonResponse } = require("./helpers/responses.js");
+const { jsonResponse } = require("./utils/responses.js");
 const { validateRequest } = require("../middleware");
 const { body, matchedData } = require("express-validator");
 const express = require("express");
@@ -19,38 +19,45 @@ router.post(
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
 	validateRequest,
-	function (req, res) {
+	async function (req, res) {
 		var userData = matchedData(req, { locations: ["body"] });
 
-		var userObj = new user();
+		var userObj = new user(userData.username, userData.password);
 
-		userObj
-			.authenticate(userData.username, userData.password)
-			.then(
-				//authentication successful
-				(doc) => {
-					req.session.user = doc.username;
-					var originURL = "/home";
-					if (req.session.originURL) {
-						originURL = req.session.originURL;
-					}
+		//wait until authentication is complete
+		while (!userObj.initComplete) {
+			await new Promise((r) => setTimeout(r, 1));
+		}
 
-					res.redirect(originURL);
-				},
-				//authentication failed
-				(result) => {
-					if (result.invalidUsername) {
-						res.status(400).json(jsonResponse("Authentication Error", "Invalid Username"));
-					} else if (result.invalidPassword) {
-						res.status(400).json(jsonResponse("Authentication Error", "Invalid Password"));
-					} else {
-						res.status(500).json(jsonResponse("Authentication Error", "Unknown cause"));
-					}
+		if (userObj.auth.isAuthenticated) {
+			//assign user roles
+			var account = {};
+
+			for (var listName of userObj.whitelists) {
+				var list = new whitelist(listName);
+
+				await list.check(userObj.document._id);
+
+				if (list.onList) {
+					account["is" + listName] = true;
 				}
-			)
-			.catch((e) => {
-				res.status(500).json(jsonResponse("Internal Server Error", e));
-			});
+			}
+
+			//set session data
+			req.session.user = {
+				username: userObj.username,
+				account: account,
+			};
+
+			//set originaURL if one exists
+			res.redirect(req.session.originalURL || "/home");
+		} else if (userObj.auth.invalidUsername) {
+			res.status(400).json(jsonResponse("Authentication Error", "Invalid Username"));
+		} else if (userObj.auth.invalidPassword) {
+			res.status(400).json(jsonResponse("Authentication Error", "Invalid Password"));
+		} else {
+			res.status(500).json(jsonResponse("Authentication Error", "Unknown cause"));
+		}
 	}
 );
 
@@ -65,13 +72,13 @@ router.post(
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
 	validateRequest,
-	function (req, res) {
+	async function (req, res) {
 		var userData = matchedData(req, { locations: ["body"] });
 
 		var userObj = new user();
 
 		userObj
-			.save(userData.email, userData.username, userData.password)
+			.create(userData.email, userData.username, userData.password)
 			.then(
 				//user DOES NOT exist in db
 				(doc) => {
@@ -89,7 +96,7 @@ router.post(
 );
 
 ////CONFIRM EMAIL
-router.get("/signup/confirm", csurf(), function (req, res) {
+router.get("/signup/confirm", function (req, res) {
 	res.send("not implemented");
 });
 

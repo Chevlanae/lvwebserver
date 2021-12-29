@@ -1,4 +1,4 @@
-const config = require("../services/getConfig.js");
+const config = require("../services/config");
 const { MongoClient } = require("mongodb");
 const assert = require("assert");
 const MUUID = require("uuid-mongodb");
@@ -6,17 +6,35 @@ const MUUID = require("uuid-mongodb");
 const dbClient = new MongoClient(config.dbURL);
 
 class whitelist {
+	/**
+	 * @param {string} list Must be either "user", or "admin". Otherwise it will throw an exception
+	 */
 	constructor(list) {
-		if (list === "user") {
-			this.list = "userWhitelist";
-		} else if (list === "admin") {
-			this.list = "adminWhitelist";
-		} else {
-			throw new Error("Parameter 'list' must either be 'user', or 'admin.");
+		var lists = ["user", "admin"];
+
+		for (var l of lists) {
+			if (list === l) {
+				this.listID = this.list + "WhitelistID";
+			}
 		}
+
+		if (!this.listID) {
+			lists.map((value) => {
+				return `"${value}"`;
+			});
+
+			throw new Error(`Parameter "list" can only hold these values: ${lists.join(", ")}`);
+		}
+
+		this.onList = false;
 	}
 
-	check(username) {
+	/**
+	 * finds user with given filter, and then checks if they are on the whitelist, resolves with whitelist document
+	 * @param {Object} filter MongoDB search params
+	 * @returns {WithID<Document>} MongoDB Document
+	 */
+	check(filter) {
 		return new Promise((resolve, reject) => {
 			dbClient.connect((err) => {
 				assert.equal(null, err);
@@ -24,32 +42,39 @@ class whitelist {
 				var whitelist = dbClient.db("lvwebserver").collection(this.list);
 
 				var users = dbClient.db("lvwebserver").collection("users");
+				var rejectReason = { notOnList: false, IDDoesNotMatch: false, userDoesNotExist: false };
 
-				var rejectResult = { notOnList: false };
-
-				users.findOne({ username: username }).then((user) => {
-					if (user !== null) {
-						whitelist.findOne({ _id: user[this.list + "ID"] }).then((document) => {
-							if (document !== null) {
+				users.findOne(filter).then((user) => {
+					if (user) {
+						whitelist.findOne({ _id: user[this.listID] }).then((document) => {
+							if (document) {
 								if (user._id.equals(document.userID)) {
-									resolve(user);
+									this.onList = true;
+									resolve(document);
 								} else {
-									reject(rejectResult);
+									rejectReason.IDDoesNotMatch = true;
+									reject(rejectReason);
 								}
 							} else {
-								rejectResult.notOnList = true;
-								reject(rejectResult);
+								rejectReason.notOnList = true;
+								reject(rejectReason);
 							}
 						});
 					} else {
-						reject(rejectResult);
+						rejectReason.userDoesNotExist = true;
+						reject(rejectReason);
 					}
 				});
 			});
 		});
 	}
 
-	add(username) {
+	/**
+	 * finds user with given filter, then adds them to the whitelist
+	 * @param {Object} filter MongoDB search params
+	 * @returns {WithID<Document>} MongoDB Document
+	 */
+	add(filter) {
 		return new Promise((resolve, reject) => {
 			dbClient.connect((err) => {
 				assert.equal(null, err);
@@ -58,16 +83,16 @@ class whitelist {
 
 				var users = dbClient.db("lvwebserver").collection("users");
 
-				var rejectResult = { userDoesNotExist: false, insertFailed: false };
+				var rejectReason = { userDoesNotExist: false, insertFailed: false, upsertFailed: false };
 
-				users.findOne({ username: username }).then((user) => {
-					if (user !== null) {
+				users.findOne(filter).then((user) => {
+					if (user) {
 						const uuid = MUUID.v4();
 						var updateDoc = {
 							$set: {},
 						};
 
-						updateDoc.$set[this.list + "ID"] = uuid;
+						updateDoc.$set[this.listID] = uuid;
 
 						users.updateOne({ username: user.username }, updateDoc).then((result) => {
 							if (result.acknowledged) {
@@ -78,27 +103,33 @@ class whitelist {
 									})
 									.then((result) => {
 										if (result.acknowledged) {
-											resolve(true);
+											this.onList = true;
+											resolve(result);
 										} else {
-											rejectResult.insertFailed = true;
-											reject(rejectResult);
+											rejectReason.insertFailed = true;
+											reject(rejectReason);
 										}
 									});
 							} else {
-								rejectResult.insertFailed = true;
-								reject(rejectResult);
+								rejectReason.upsertFailed = true;
+								reject(rejectReason);
 							}
 						});
 					} else {
-						rejectResult.userDoesNotExist = true;
-						reject(rejectResult);
+						rejectReason.userDoesNotExist = true;
+						reject(rejectReason);
 					}
 				});
 			});
 		});
 	}
 
-	remove(username) {
+	/**
+	 * finds user with given filter, then removes them from the whitelist
+	 * @param {Object} filter MongoDB search params
+	 * @returns {DeleteResult} MongoDB Document
+	 */
+	remove(filter) {
 		return new Promise((resolve, reject) => {
 			dbClient.connect((err) => {
 				assert.equal(null, err);
@@ -107,21 +138,22 @@ class whitelist {
 
 				var users = dbClient.db("lvwebserver").collection("users");
 
-				var rejectResult = { userDoesNotExist: false, deleteFailed: false };
+				var rejectReason = { userDoesNotExist: false, deleteFailed: false };
 
-				users.findOne({ username: username }).then((user) => {
-					if (user !== null) {
-						whitelist.deleteOne({ _id: user.whitelistID }).then((result) => {
+				users.findOne(filter).then((user) => {
+					if (user) {
+						whitelist.deleteOne({ _id: user[this.listID] }).then((result) => {
 							if (result.acknowledged) {
-								resolve(true);
+								this.onList = false;
+								resolve(result);
 							} else {
-								rejectResult.deleteFailed = true;
-								reject(rejectResult);
+								rejectReason.deleteFailed = true;
+								reject(rejectReason);
 							}
 						});
 					} else {
-						rejectResult.userDoesNotExist = true;
-						reject(rejectResult);
+						rejectReason.userDoesNotExist = true;
+						reject(rejectReason);
 					}
 				});
 			});

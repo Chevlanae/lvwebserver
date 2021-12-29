@@ -1,5 +1,5 @@
 function checkSignIn(req, res, next) {
-	if (req.session.admin) {
+	if (req.session.user.isAdmin) {
 		if (req.session.originalUrl) {
 			req.session.originalUrl = undefined; //if user is already authenticated, remove origin URL
 		}

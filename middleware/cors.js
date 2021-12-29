@@ -1,5 +1,5 @@
 const cors = require("cors");
-const config = require("../services/getConfig");
+const config = require("../services/config");
 
 //configure cors options
 function corsOptionsDelegate(req, callback) {

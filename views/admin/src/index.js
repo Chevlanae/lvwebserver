@@ -1,17 +1,10 @@
-import postJSON from "../../helperScripts/postJSON.js";
-
-const origin = window.origin;
-
-function login() {
-	var username = document.getElementById("username").value,
-		password = document.getElementById("password").value,
-		csrfToken = document.getElementById("csrf").value;
-
-	postJSON(origin + "/admin", {
-		username: username,
-		password: password,
-		_csrf: csrfToken,
-	});
+function myFunction() {
+	var x = document.getElementById("header");
+	if (x.className === "header") {
+		x.className += " responsive";
+	} else {
+		x.className = "header";
+	}
 }
 
-document.getElementById("submit").onclick = login;
+document.getElementById("hamburger-icon").onclick = myFunction;

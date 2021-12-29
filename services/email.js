@@ -13,5 +13,7 @@ var defaultSendOptions = {
 };
 
 function sendMail(to, subject, template, options = defaultSendOptions) {
-	var transporter = nodemailer.createTransport(); //omg email is hard. Gonna do this later.
+	var transporter = nodemailer.createTransport();
 }
+
+//omg email is hard. Gonna do this later.

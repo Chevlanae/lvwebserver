@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 const { RateLimiterMongo } = require("rate-limiter-flexible");
-const config = require("../services/getConfig");
+const config = require("../services/config");
 
 const mongoClient = MongoClient.connect(config.dbURL);
 

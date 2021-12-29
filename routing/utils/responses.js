@@ -7,10 +7,10 @@
  * @returns {Object}
  */
 function jsonResponse(message = "", errors = undefined) {
-	var json = new Object({
+	var json = {
 		message: message,
 		errors: [],
-	});
+	};
 
 	if (errors) {
 		if (typeof errors === typeof "") {

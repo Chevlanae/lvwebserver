@@ -1,3 +1,4 @@
+//##dependencies##
 const https = require("https");
 const fs = require("fs");
 const express = require("express");
@@ -6,15 +7,11 @@ const MongoStore = require("connect-mongo");
 const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const favicon = require("serve-favicon");
+
+//##local imports##
 const middleware = require("./middleware");
 const rootRouter = require("./routing");
-const config = require("./services/getConfig.js");
-
-//define app
-var app = express();
-
-//run loaders
-require("./loaders");
+const config = require("./services/config");
 
 //process args
 var port;
@@ -28,7 +25,11 @@ process.argv.forEach((val, index) => {
 	}
 });
 
-port = port === undefined ? 4443 : port;
+//default args
+port = port || 4443;
+
+//define app
+var app = express();
 
 //rate limiter
 app.use(middleware.rateLimiter);
@@ -39,7 +40,7 @@ app.use(
 		cookie: { secure: true, httpOnly: true, samesite: true, maxAge: 600000, domain: config.domain },
 		resave: true,
 		saveUninitialized: true,
-		name: "chevlanae.com.id",
+		name: config.domain + ".id",
 		secret: config.sessionSecrets,
 		store: MongoStore.create({
 			mongoUrl: config.dbURL,
@@ -52,15 +53,15 @@ app.use(
 
 //middleware
 app.use(middleware.cors); //cors handler
-app.use(helmet()); //configure headers
-app.use(bodyParser.json({ limit: "5mb" })); //define body-parser
-app.use(favicon(__dirname + "/public/images/favicon.ico")); //serve favicon
+app.use(helmet()); //security headers
+app.use(bodyParser.json({ limit: "5mb" })); //json only body-parser
+app.use(favicon(__dirname + "/public/images/favicon.ico")); //favicon
 
-//set views
+//views
 app.set("view engine", "pug");
 app.set("views", "./views");
 
-//set routing
+//routing
 app.use("/", rootRouter);
 
 //public files
@@ -73,10 +74,11 @@ app.get("*", function (req, res) {
 
 //https config
 var options = {
-	key: fs.readFileSync(config.SSL.key),
-	cert: fs.readFileSync(config.SSL.cert),
+	key: fs.readFileSync(config.SSL_key),
+	cert: fs.readFileSync(config.SSL_cert),
 };
 
+//listen on port 4443 default, or specified via '--port' parameter on process execution
 var server = https.createServer(options, app);
 
 server.listen(port, () => {
