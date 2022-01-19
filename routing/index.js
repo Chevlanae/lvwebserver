@@ -1,12 +1,9 @@
 const express = require("express");
-const authRouter = require("./authentication.js");
-const adminRouter = require("./admin.js");
-const homeRouter = require("./home.js");
 
 var router = express.Router();
 
-router.use("/auth", authRouter);
-router.use("/admin", adminRouter);
-router.use("/home", homeRouter);
+router.use("/auth", require("./authentication.js"));
+router.use("/admin", require("./admin.js"));
+router.use("/home", require("./home.js"));
 
 module.exports = router;

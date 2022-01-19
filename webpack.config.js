@@ -20,6 +20,15 @@ module.exports = [
 		},
 	},
 	{
+		name: "confirm",
+		entry: "./views/auth/confirm/src/index.js",
+		mode: "production",
+		output: {
+			filename: "confirm.js",
+			path: path.resolve(__dirname, "public/scripts/auth/"),
+		},
+	},
+	{
 		name: "admin",
 		entry: "./views/admin/src/index.js",
 		mode: "production",

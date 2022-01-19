@@ -51,7 +51,7 @@ app.use(
 	})
 );
 
-//middleware
+//misc middleware
 app.use(middleware.cors); //cors handler
 app.use(helmet()); //security headers
 app.use(bodyParser.json({ limit: "5mb" })); //json only body-parser

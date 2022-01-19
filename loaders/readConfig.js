@@ -1,20 +1,10 @@
 const fs = require("fs");
+const utils = require("../utils");
 
 const configDir = `${process.env.HOME}/.lvwebserver`;
 
 //if config file does not exist
 if (!fs.existsSync(configDir + "/config")) {
-	function generateToken(length) {
-		//token allowed characters
-		var a = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456789".split("");
-		var b = [];
-		for (var i = 0; i < length; i++) {
-			var j = (Math.random() * (a.length - 1)).toFixed(0);
-			b[i] = a[j];
-		}
-		return b.join("");
-	}
-
 	var defaultConfig = {
 		sessionSecrets: [], //cookie secrets
 		storeSecret: "", //session store password
@@ -29,17 +19,15 @@ if (!fs.existsSync(configDir + "/config")) {
 
 	//set session secrets
 	for (var i = 0; i < 11; i++) {
-		defaultConfig.sessionSecrets.push(generateToken(128));
+		defaultConfig.sessionSecrets.push(utils.genToken(128));
 	}
 
 	//set session store secret
-	defaultConfig.storeSecret = generateToken(256);
+	defaultConfig.storeSecret = utils.genToken(256);
 
 	//write file
-	try {
-		fs.mkdirSync(configDir);
-	} catch {}
 
+	fs.mkdirSync(configDir);
 	fs.writeFileSync(configDir + "/config", JSON.stringify(defaultConfig, null, 4));
 
 	console.log("Created new configuration file. Please configure the settings located in '~/.lvwebserver/config'");

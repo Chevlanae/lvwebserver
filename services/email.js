@@ -1,19 +1,28 @@
 const nodemailer = require("nodemailer");
+const config = require("./config.js");
 const fs = require("fs");
-const config = require("../services/getConfig.js");
 
-var defaultSendOptions = {
-	from: config.emailConfig.defaultFromAddress,
-	replyto: config.emailConfig.defaultReplyToAddress,
-	cc: "",
-	bcc: "",
-	templateVariables: {},
-	templateRootPath: config.emailConfig.templatePath,
-	attachments: undefined,
-};
+async function sendTestMail(to, subject, templatePath) {
+	var testAccount = await nodemailer.createTestAccount();
 
-function sendMail(to, subject, template, options = defaultSendOptions) {
-	var transporter = nodemailer.createTransport();
+	var transporter = nodemailer.createTransport({
+		host: "smtp.ethereal.email",
+		port: 587,
+		secure: false, // true for 465, false for other ports
+		auth: {
+			user: testAccount.user, // generated ethereal user
+			pass: testAccount.pass, // generated ethereal password
+		},
+	});
+
+	return transporter.sendMail({
+		from: `test@${config.domain}`,
+		to: to,
+		subject: subject,
+		html: await fs.promises.readFile(templatePath),
+	});
 }
 
 //omg email is hard. Gonna do this later.
+
+module.exports = sendTestMail;

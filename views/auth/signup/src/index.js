@@ -1,4 +1,4 @@
-import postJSON from "../../../helperScripts/postJSON.js";
+import postJSON from "../../../utils/postJSON.js";
 import * as swal from "sweetalert2";
 
 const origin = window.origin;

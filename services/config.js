@@ -28,7 +28,7 @@ class Config {
 	/**
 	 *shuffles sessionSecrets array
 	 */
-	async shuffleSecrets(ms) {
+	async shuffleSecrets() {
 		var array = this.sessionSecrets;
 
 		////Shuffle array of session secrets
@@ -45,11 +45,8 @@ class Config {
 			[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
 		}
 
-		process.env.sessionSecrets = array;
 		this.sessionSecrets = array;
 	}
 }
 
-const config = new Config();
-
-module.exports = config;
+module.exports = new Config();

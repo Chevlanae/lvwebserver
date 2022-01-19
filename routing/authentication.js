@@ -1,9 +1,10 @@
-const { user, whitelist } = require("../models");
+const { User, List } = require("../models");
 const { jsonResponse } = require("./utils/responses.js");
 const { validateRequest } = require("../middleware");
 const { body, matchedData } = require("express-validator");
 const express = require("express");
 const csurf = require("csurf");
+const { email } = require("../services");
 
 var router = express.Router();
 
@@ -19,41 +20,40 @@ router.post(
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
 	validateRequest,
-	async function (req, res) {
-		var userData = matchedData(req, { locations: ["body"] });
+	async function (req, res, next) {
+		var formData = matchedData(req, { locations: ["body"] });
 
-		var userObj = new user(userData.username, userData.password);
+		//create new User object
+		var user = new User();
 
-		//wait until authentication is complete
-		while (!userObj.initComplete) {
-			await new Promise((r) => setTimeout(r, 1));
-		}
+		//authenticate credentials
+		await user.authenticate(formData.password, { username: formData.username });
 
-		if (userObj.auth.isAuthenticated) {
-			//assign user roles
-			var account = {};
+		//if authentication is successful
+		if (user.isAuthenticated) {
+			//create new List object and check user credentials agains the userList
+			var userList = new List("user"),
+				checkResult = await userList.check({ _id: user.id });
 
-			for (var listName of userObj.whitelists) {
-				var list = new whitelist(listName);
+			//if check operation succeeds
+			if (checkResult) {
+				//set user session
+				req.session.user = user.document;
 
-				await list.check(userObj.document._id);
+				//else if check result is not null
+			} else if (checkResult !== null) {
+				res.status(401).json(jsonResponse("Authentication Error", "Access Denied"));
 
-				if (list.onList) {
-					account["is" + listName] = true;
-				}
+				//if null, the user lookup for the check operation has failed in some way
+			} else {
+				res.status(500).json(jsonResponse("Authentication Error", "Unkown Error"));
 			}
 
-			//set session data
-			req.session.user = {
-				username: userObj.username,
-				account: account,
-			};
-
-			//set originaURL if one exists
+			//redirect to originalURL if one exists, else /home
 			res.redirect(req.session.originalURL || "/home");
-		} else if (userObj.auth.invalidUsername) {
+		} else if (userObj.invalidUsername) {
 			res.status(400).json(jsonResponse("Authentication Error", "Invalid Username"));
-		} else if (userObj.auth.invalidPassword) {
+		} else if (userObj.invalidPassword) {
 			res.status(400).json(jsonResponse("Authentication Error", "Invalid Password"));
 		} else {
 			res.status(500).json(jsonResponse("Authentication Error", "Unknown cause"));
@@ -68,40 +68,40 @@ router.get("/signup", function (req, res) {
 
 router.post(
 	"/signup",
-	body("email").exists().isEmail(),
+	body("email").exists().trim().isEmail(),
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
 	validateRequest,
-	async function (req, res) {
-		var userData = matchedData(req, { locations: ["body"] });
+	async function (req, res, next) {
+		var formData = matchedData(req, { locations: ["body"] });
 
-		var userObj = new user();
+		var user = new User();
 
-		userObj
-			.create(userData.email, userData.username, userData.password)
-			.then(
-				//user DOES NOT exist in db
-				(doc) => {
-					res.redirect("/auth/login");
-				},
-				//user DOES exist in db
-				() => {
-					res.status(400).json(jsonResponse("DB Error", "User already exists."));
-				}
-			)
-			.catch((e) => {
-				res.status(500).json(jsonResponse("Internal Server Error", e));
-			});
+		await user.create({ username: formData.username, password: formData.password });
+
+		if (!user.alreadyExists) {
+			req.session.user = user.document;
+
+			var options = { templateVariables: { verificationToken: user.document.verification.token } };
+			email(user.email, "Confirm your account.", "emails/auth/confirm", options);
+		} else {
+			res.status(400).json(jsonResponse("DB Error", "User already exists."));
+		}
 	}
 );
 
 ////CONFIRM EMAIL
 router.get("/signup/confirm", function (req, res) {
-	res.send("not implemented");
+	res.render("auth/confirm/index.pug");
 });
 
 router.post("/signup/confirm", body("emailConfirmToken").exists(), function (req, res) {
 	return res.json(jsonResponse("not implemented", Error("NOT IMPLEMENTED")));
+});
+
+////ALL UNMATCHED ROUTES TO LOGIN
+router.get("*", function (req, res) {
+	res.redirect("/login");
 });
 
 module.exports = router;

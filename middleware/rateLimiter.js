@@ -6,7 +6,7 @@ const mongoClient = MongoClient.connect(config.dbURL);
 
 const opts = {
 	storeClient: mongoClient,
-	dbName: "lvwebserver",
+	dbName: config.dbName,
 	points: 10, // Number of points
 	duration: 1, // Per second(s)
 };
