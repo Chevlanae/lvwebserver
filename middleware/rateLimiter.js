@@ -2,10 +2,8 @@ const { MongoClient } = require("mongodb");
 const { RateLimiterMongo } = require("rate-limiter-flexible");
 const config = require("../services/config");
 
-const mongoClient = MongoClient.connect(config.dbURL);
-
 const opts = {
-	storeClient: mongoClient,
+	storeClient: MongoClient.connect(config.dbURL),
 	dbName: config.dbName,
 	points: 10, // Number of points
 	duration: 1, // Per second(s)

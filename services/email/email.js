@@ -1,8 +1,10 @@
 const nodemailer = require("nodemailer");
-const config = require("./config.js");
-const fs = require("fs");
+const config = require("../config.js");
+const pug = require("pug");
 
-async function sendTestMail(to, subject, templatePath) {
+async function sendTestMail(to, subject, templatePath, templateVars) {
+	var template = pug.compileFile(`./templates/${templatePath}`);
+
 	var testAccount = await nodemailer.createTestAccount();
 
 	var transporter = nodemailer.createTransport({
@@ -19,7 +21,7 @@ async function sendTestMail(to, subject, templatePath) {
 		from: `test@${config.domain}`,
 		to: to,
 		subject: subject,
-		html: await fs.promises.readFile(templatePath),
+		html: template(templateVars),
 	});
 }
 

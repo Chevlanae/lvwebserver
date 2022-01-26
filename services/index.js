@@ -1,4 +1,4 @@
 module.exports = {
 	config: require("./config"),
-	email: require("./email"),
+	email: require("./email/email"),
 };
