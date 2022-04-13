@@ -1,11 +1,14 @@
-const { User } = require("../models");
-const { jsonResponse } = require("./utils/responses");
-const { validateRequest, authCheck } = require("../middleware");
-const email = require("../services/email/email");
+//modules
 const { body, matchedData } = require("express-validator");
 const express = require("express");
 const csurf = require("csurf");
 const secureRandom = require("secure-random");
+
+//local
+const { User } = require("../models");
+const { jsonResponse } = require("./utils/responses");
+const { validateRequest, authCheck } = require("../middleware");
+const email = require("../services/email/email");
 
 var router = express.Router();
 
@@ -21,7 +24,7 @@ router.post(
 	body("username").exists().isString().trim().escape(),
 	body("password").exists().isString().trim(),
 	validateRequest,
-	async function (req, res, next) {
+	async function (req, res) {
 		//match form data
 		var formData = matchedData(req, { locations: ["body"] });
 

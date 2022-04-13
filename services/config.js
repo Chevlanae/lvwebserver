@@ -1,35 +1,37 @@
-const conf = require("../loaders/readConfig");
+const dotenv = require("dotenv");
+const fs = require("fs").promises;
+
+const readConfig = require("../loaders/config");
 
 class Config {
+	#local;
 	constructor() {
-		if (Object.keys(conf).length != 0) {
-			//assign config file properties to this instance
-			Object.assign(this, conf);
+		//save
+		this.#local = readConfig();
 
-			//populate ENV variables.
-			Object.keys(conf).forEach((value) => {
-				if (!Object.prototype.hasOwnProperty.call(process.env, value)) {
-					process.env[value] = conf[value];
-				}
-			});
-		}
+		//write .env file and load it into process.env
+		fs.writeFile(".env", this.toEnv()).then(() => dotenv.config());
 	}
 
 	toEnv() {
-		var envStr = "";
+		let envStr = "";
 
-		Object.keys(conf).forEach((value) => {
-			envStr = envStr + value.toUpperCase() + "=" + conf[value] + "\n";
+		Object.keys(this.#local).forEach((value) => {
+			envStr = envStr + value.toUpperCase() + "=" + this.#local[value] + "\n";
 		});
 
 		return envStr;
+	}
+
+	toJson() {
+		return JSON.stringify(this.#local);
 	}
 
 	/**
 	 *shuffles sessionSecrets array
 	 */
 	async shuffleSecrets() {
-		var array = this.sessionSecrets;
+		var array = this.#local.sessionSecrets;
 
 		////Shuffle array of session secrets
 		var currentIndex = array.length,

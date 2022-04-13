@@ -1,5 +1,5 @@
-require("../loaders/mongoInitializer");
+require("../loaders/mongo");
 
 module.exports = {
-	User: require("./user.js"),
+	User: require("../services/user.js"),
 };
