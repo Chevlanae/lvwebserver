@@ -22,14 +22,16 @@
 	"name": "lvwebserver",
 	"version": "1.0.0",
 	"private": "true",
+	"main": "app.ts",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "webpack"
+		"build": "webpack",
+		"start": "nodemon app.ts"
 	},
 	"author": "Leah Vance",
 	"license": "ISC",
 	"bin": {
-		"execute": "app.js"
+		"execute": "nodemon app.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -39,5 +41,16 @@
 		"url": "https://github.com/Chevlanae/lvwebserver/issues"
 	},
 	"homepage": "https://github.com/Chevlanae/lvwebserver#readme",
-	"description": "Personal webserver"
+	"description": "Personal webserver",
+	"devDependencies": {
+		"@types/cors": "^2.8.12",
+		"@types/csurf": "^1.11.2",
+		"@types/express": "^4.17.13",
+		"@types/express-session": "^1.17.2",
+		"@types/node": "^17.0.31",
+		"@types/serve-favicon": "^2.5.3",
+		"nodemon": "^2.0.16",
+		"ts-node": "^10.7.0",
+		"typescript": "^4.6.4"
+	}
 }
