@@ -1,11 +1,13 @@
 {
 	"compilerOptions": {
-		"target": "es2017",
-		"module": "commonjs",
+		"target": "esnext",
+		"module": "CommonJS",
+		"moduleResolution": "node",
 		"rootDir": "./",
-		"outDir": "./build",
+		"outDir": "./bin",
 		"esModuleInterop": true,
-		"strict": true
+		"strict": true,
+		"declaration": true
 	},
-	"types": ["node", "express", "cors"]
+	"types": ["node", "nodemailer", "express", "cors", "csurf", "serve-favicon", "express-session"]
 }

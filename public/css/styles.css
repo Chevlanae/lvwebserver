@@ -4,9 +4,6 @@ html {
 }
 
 .header {
-	border-style: solid;
-	border-radius: 8px;
-	background-color: white;
 	overflow: hidden;
 }
 
@@ -75,6 +72,5 @@ html {
 
 .container {
 	border-style: solid;
-	border-radius: 8px;
 	background: white;
 }

@@ -8,7 +8,7 @@ function parseResponse(response) {
 	response
 		.json()
 		.then((body) => {
-			if (body.errors.length > 0) {
+			if (body.status === "ERROR") {
 				var errorString = "<p>";
 				for (var error of body.errors) {
 					errorString = errorString + error + "<br>";

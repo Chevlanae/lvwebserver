@@ -6,8 +6,8 @@ block head
 
 block append body 
     div(class="centered")
-            h1(style="text-align: center;") Unauthorized
+            h1(style="text-align: center;") Login Required
             div(class="container responsive" style="text-align: center; padding: 20px")
-                h2 You do not have the permissions required to access this page.
-                - var referrer = document.referrer
-                a(href=referrer)
+                h2 Your session is unauthenticated.
+                p 
+                    | Please click <a href="/auth/login">here</a> to sign in to your account.

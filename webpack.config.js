@@ -1,40 +1,14 @@
 const path = require("path");
 
-module.exports = [
-	{
-		name: "login",
-		entry: "./views/auth/login/src/index.js",
-		mode: "production",
-		output: {
-			filename: "login.js",
-			path: path.resolve(__dirname, "public/scripts/auth/"),
-		},
+module.exports = {
+	entry: {
+		login: "./views/auth/login/src/index.js",
+		signup: "./views/auth/signup/src/index.js",
+		confirm: "./views/auth/confirm/src/index.js",
 	},
-	{
-		name: "signup",
-		entry: "./views/auth/signup/src/index.js",
-		mode: "production",
-		output: {
-			filename: "signup.js",
-			path: path.resolve(__dirname, "public/scripts/auth/"),
-		},
+	output: {
+		filename: "[name].js",
+		path: path.resolve(__dirname, "public/scripts/"),
 	},
-	{
-		name: "confirm",
-		entry: "./views/auth/confirm/src/index.js",
-		mode: "production",
-		output: {
-			filename: "confirm.js",
-			path: path.resolve(__dirname, "public/scripts/auth/"),
-		},
-	},
-	{
-		name: "admin",
-		entry: "./views/admin/src/index.js",
-		mode: "production",
-		output: {
-			filename: "admin.js",
-			path: path.resolve(__dirname, "public/scripts/admin/"),
-		},
-	},
-];
+	mode: "production",
+};

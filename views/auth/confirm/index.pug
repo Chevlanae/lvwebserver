@@ -1,14 +1,5 @@
-html(lang="en")
-    head 
-        link(rel='stylesheet' href="/public/css/styles.css")
-        link(rel='stylesheet' href="/public/css/submitButton.css")
-        
-        meta(name="viewport" content="width=device-width, initial-scale=1")
-    body
-        div(class="container centered" style="height: 400px; width: 400px;")
-            div(style="padding: 1em;")
-                p Your email has been confirmed. Click here to return to login. 
-                | <br>
-                div(id="home" class="button") Login 
-                    a(href="/auth/login")
-                    div(id="underline") 
+html 
+    include ../../includes/header.pug
+
+    body 
+        |TEST
