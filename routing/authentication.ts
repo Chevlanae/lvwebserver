@@ -16,7 +16,7 @@ authRouter.use(csurf());
 
 //*LOGIN*//
 authRouter.get("/login", function (req, res) {
-	res.render("auth/login/index.pug", { csrfToken: req.csrfToken() });
+	res.render("auth/login/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
 
 authRouter.post(
@@ -74,7 +74,7 @@ authRouter.post(
 
 //*SIGNUP*//
 authRouter.get("/signup", function (req, res) {
-	res.render("auth/signup/index.pug", { csrfToken: req.csrfToken() });
+	res.render("auth/signup/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
 
 authRouter.post(
@@ -108,7 +108,7 @@ authRouter.post(
 			trim: true,
 			isLength: {
 				errorMessage: "Password must be between 13 and 30 characters long.",
-				options: { min: 13, max: 31 },
+				options: { min: 13, max: 30 },
 			},
 			custom: {
 				options: (value: string) => {
@@ -193,6 +193,7 @@ authRouter.get(
 				status: 500,
 				message: "User not found",
 				errors: [`Could not find user with ID "${req.session.mongoId?.toString()}".`],
+				session: req.session,
 			});
 		//if queried user has no set email (not likely), return an error and render associated page in "/errors/"
 		else if (user.email === undefined)
@@ -200,12 +201,13 @@ authRouter.get(
 				status: 500,
 				message: "No email associated with this user.",
 				errors: [`User "${req.session["username"]}" does not have an email address associated with their account.`],
+				session: req.session,
 			});
 
 		//! Main Operation
 
 		//if no token, render index page
-		if (!formData?.token) res.render("auth/confirm/index.pug", { csrfToken: req.csrfToken() });
+		if (formData?.token === undefined) res.render("auth/confirm/index.pug", { csrfToken: req.csrfToken() });
 		//check if receivedToken is equal to associatedToken
 		else if (receivedToken.equals(associatedToken)) {
 			//save changes to db
@@ -222,16 +224,23 @@ authRouter.get(
 				status: 400,
 				message: "Invalid token",
 				errors: [`Received token "${receivedToken}" does not match user's stored token.`],
+				session: req.session,
 			});
 	}
 );
 
 authRouter.post("/signup/confirm", authCheck("user"), async function (req: express.Request, res: CustomResponse.API) {
-	if (req.session["email"] === undefined)
+	if (req.session.email === undefined)
 		res.status(500).json({
 			status: "ERROR",
 			message: "No email associated with this user.",
-			errors: [`User "${req.session["username"]}" does not have an email address associated with their account.`],
+			errors: [`User "${req.session.username}" does not have an email address associated with their account.`],
+		});
+	else if (req.session.emailVerified === true)
+		res.status(400).json({
+			status: "ERROR",
+			message: "User's email is already verified",
+			errors: [`User "${req.session.username}" already has a verified email address`],
 		});
 	else {
 		let newToken = randomBytes(2 ** 6),
@@ -257,7 +266,7 @@ authRouter.post("/signup/confirm", authCheck("user"), async function (req: expre
 });
 
 authRouter.get("/signup/confirm/success", authCheck("user"), async function (req: express.Request, res: express.Response) {
-	res.render("/auth/confirm/verified.pug", { redirect: req.session?.tempData["redirect"] || "../home" });
+	res.render("/auth/confirm/verified.pug", { redirect: req.session?.tempData["redirect"] || "/home", session: req.session });
 });
 
 //*REDIRECT ALL UNMATCHED ROUTES TO LOGIN*//
