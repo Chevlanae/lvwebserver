@@ -3,67 +3,75 @@ html {
 	font-family: Consolas, Courier New, monospace;
 }
 
-.header {
-	overflow: hidden;
+body {
+	display: flex;
+	flex-direction: column;
 }
 
-.header a {
+.nav-bar {
+	display: inline;
+	overflow: hidden;
+	position: relative;
+	min-width: 100%;
+}
+
+.nav-bar #links {
+	display: flex;
 	float: left;
-	display: block;
+}
+
+.nav-bar #links a {
 	color: black;
 	text-align: center;
 	padding: 14px 16px;
 	font-size: 17px;
 }
 
-.header a:hover {
-	background-color: lavender;
+.nav-bar #links a:hover {
+	background-color: lightgrey;
 	color: black;
 }
 
-.header a.active {
+.nav-bar #links a.active {
 	background-color: violet;
 	color: black;
 }
-.header .icon {
-	display: none;
-	max-height: 20px;
+
+.nav-bar #login {
+	color: black;
+	text-align: center;
+	padding: 14px 16px;
+	font-size: 17px;
+	background-color: darkgrey;
+	float: right;
 }
 
-.header .icon .bar {
+.nav-bar #user {
+	text-align: center;
+	padding: 14px 16px;
+	font-size: 17px;
+	float: right;
+}
+
+.nav-bar #menu-icon {
+	display: none;
+	max-height: 20px;
+	float: right;
+	padding: 14px 16px;
+}
+
+.nav-bar a#menu-icon .bar {
 	width: 25px;
 	height: 3px;
 	background-color: black;
 	margin: 3px 0;
 }
 
-@media screen and (max-width: 600px) {
-	.header a:not(:first-child) {
-		display: none;
-	}
-	.header a.icon {
-		float: right;
-		display: block;
-	}
-}
-
-@media screen and (max-width: 600px) {
-	.header.responsive {
-		position: relative;
-	}
-	.header.responsive .icon {
-		position: absolute;
-		right: 0;
-		top: 0;
-	}
-	.header.responsive a {
-		float: none;
-		display: block;
-		text-align: left;
-	}
-}
-
 .centered {
+	margin: auto;
+}
+
+.centered-legacy {
 	position: fixed;
 	top: 50%;
 	left: 50%;
@@ -73,4 +81,25 @@ html {
 .container {
 	border-style: solid;
 	background: white;
+}
+
+div.flexDiv {
+	display: flex;
+	flex-direction: column;
+}
+
+@media screen and (max-width: 600px) {
+	.nav-bar #links {
+		flex-direction: column;
+		float: none;
+		display: none;
+	}
+
+	.nav-bar #links #login {
+		align-self: unset;
+	}
+
+	.nav-bar #menu-icon {
+		display: block;
+	}
 }

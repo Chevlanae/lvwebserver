@@ -39,7 +39,8 @@ export const authCheck = function (...allowedRoles: (keyof User.BaseType["permis
 export const validateParams: RequestHandler = function (req, res: CustomResponse.API, next) {
 	const validationErrors = validationResult(req);
 
-	!validationErrors.isEmpty() ? res.status(400).json({ status: "ERROR", message: "Invalid Parameters", errors: validationErrors.mapped() }) : next();
+	if (!validationErrors.isEmpty()) res.status(400).json({ status: "ERROR", message: "Invalid Parameters", errors: validationErrors.mapped() });
+	else next();
 };
 
 /**

@@ -1,40 +1,62 @@
 extends ../../layout.pug
 
-block head 
-    link(rel='stylesheet' href="/public/css/styles.css")
-    link(rel='stylesheet' href="/public/css/submitButton.css")
-    meta(name="viewport" content="width=device-width, initial-scale=1")
+block append head 
+    style(type="text/css").
+        .flexDiv {
+            align-items: center;
+        }
 
+        .flexDiv div {
+            margin: 10px
+        }
+
+        .flexDiv#emailDiv {
+            flex-direction: row; 
+            margin: 10px
+        }
+
+        .flexDiv#passwordDiv{
+            flex-direction: row; 
+            margin: 10px
+        }
+        @media screen and (max-width: 600px) {
+            .flexDiv#emailDiv {
+                flex-direction: column;
+            }
+
+            .flexDiv#passwordDiv {
+                flex-direction: column;
+            }
+        }
 block append body
     div(class="centered")
         h1(style="text-align: center;") Signup
-        div(class="container responsive" style="height: 500px; width: 400px;")
-            table(style="text-align: center; height: 90%; width: 100%; margin-top: 10px; margin-bottom: 10px")
-                tr
-                    td
-                        h3 Username 
-                        input(type="text" id="username")
-                        |<br />
-                        
-                        div(style="width: 50%; float: left;")
-                            h3 Email 
-                            input(type="text" id="email")
-                            | <br />
-                            h3 Confirm Email    
-                            input(type="text" id="confirmEmail")
-                        div(style="width: 50%; float: right;")
-                            h3 Password 
-                            input(type="password" id="password")  
-                            | <br />
-                            h3 Confirm Password 
-                            input(type="password" id="confirmPassword")
-                tr
-                    td
-                        div(id="submit" class="button") Signup
-                            div(id="underline")
-                        input(type="hidden" id="csrf" value=csrfToken)
-                        |<br /><br />
-                        |Or 
-                        |<br /><br />
-                        a(href="/auth/login") Login
+        div(class="container" )
+            div(class="flexDiv" style="text-align: center; padding: 2em;")
+                div
+                    h3 Username 
+                    input(type="text" id="username")
+                div(class="flexDiv" id="emailDiv")
+                    div
+                        |Email <br />
+                        input(type="text" id="email")
+                    div
+                        |Confirm Email <br />  
+                        input(type="text" id="confirmEmail")
+                div(class="flexDiv" id="passwordDiv")
+                    div
+                        |Password <br />
+                        input(type="password" id="password")  
+                    div
+                        |Confirm Password <br />
+                        input(type="password" id="confirmPassword")
+                div(style="margin: 10%")
+                    input(id="submit" type="button" value="Signup")
+                    input(type="hidden" id="csrf" value=csrfToken)
+                    br
+                    br
+                    |Or 
+                    br
+                    br
+                    a(href="/auth/login") Login
         script(src="/public/scripts/signup.js")

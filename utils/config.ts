@@ -132,8 +132,8 @@ export namespace Config {
 				console.error(`Cannot read config file. File at "${this.filepath}" does not exist.`);
 
 				this.write({
-					sessionSecrets: new Array<Buffer>(10).map(() => randomBytes(2 ** 6)),
-					storeSecret: randomBytes(2 ** 6),
+					sessionSecrets: new Array<Buffer>(10).map(() => randomBytes(2 ** 8)),
+					storeSecret: randomBytes(2 ** 8),
 					originAllowList: ["development.example.com", "example.com"],
 					dbName: "lvwebserver",
 					dbURL: `mongodb://username:password@127.0.0.1?authSource=admin`,
