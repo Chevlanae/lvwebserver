@@ -1,13 +1,8 @@
 extends ../layout.pug
 
-block head
-    link(rel='stylesheet' href="/public/css/styles.css")
-    meta(name="viewport" content="width=device-width, initial-scale=1")
-
 block append body 
     div(class="centered")
             h1(style="text-align: center;") Unauthorized
             div(class="container responsive" style="text-align: center; padding: 20px")
                 h2 You do not have the permissions required to access this page.
-                - var referrer = document.referrer
-                a(href=referrer)
+                a(href="#")

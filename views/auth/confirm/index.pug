@@ -1,1 +1,10 @@
 extends ../../layout.pug
+
+block append body 
+    div(class="centered")
+        h1 Verify your email address 
+        div(class="container responsive" style="text-align: center;")
+            h2 Resend email
+            input(id="resendEmail" type="button" value="resend")
+            input(id="csrf" type="hidden" value=csrfToken)
+    script(src="/public/scripts/confirm.js")

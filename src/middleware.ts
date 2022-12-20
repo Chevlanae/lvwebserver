@@ -7,7 +7,7 @@ import { validationResult } from "express-validator";
 import { RateLimiterMongo } from "rate-limiter-flexible";
 
 import { User } from "./models";
-import { CustomResponse } from "./types";
+import { Routing } from "./types";
 
 /**
  * Generates a function that checks req.session for isAuthenticated = true, and whitelists user roles with the given "...allowedRoles".
@@ -36,7 +36,7 @@ export const authCheck = function (...allowedRoles: (keyof User.BaseType["permis
 /**
  * Runs validationResult() from express-validator, and either responds 400 with a JSON describing the incorrect parameters, or calls next()
  */
-export const validateParams: RequestHandler = function (req, res: CustomResponse.API, next) {
+export const validateParams: RequestHandler = function (req, res: Routing.Response.API, next) {
 	const validationErrors = validationResult(req);
 
 	if (!validationErrors.isEmpty()) res.status(400).json({ status: "ERROR", message: "Invalid Parameters", errors: validationErrors.mapped() });

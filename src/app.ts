@@ -51,13 +51,13 @@ app.use(favicon(__dirname + "/public/images/favicon.ico")); //favicon
 
 //views
 app.set("view engine", "pug");
-app.set("views", "./views");
+app.set("views", "../views");
 
 //routing
 app.use("/", rootRouter);
 
 //public files
-app.use("/public", express.static("./public"));
+app.use("/public", express.static("../public"));
 
 //route all unmatched URLs to '/home'
 app.get("*", function (req, res) {

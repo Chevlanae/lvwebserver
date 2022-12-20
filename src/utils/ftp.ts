@@ -4,14 +4,14 @@ import type { ConnectionOptions } from "tls";
 const ftpClient = require("ftp");
 
 //reason for this util?
-//me no like callbacks.
+//grug no like callbacks
 
 export namespace FTP {
 	type connectionConfig = {
 		host: string;
-		username: string;
+		user: string;
 		password: string;
-		secure: true;
+		secure: boolean;
 		connTimeout?: number;
 		keepalive?: number;
 		secureOptions?: ConnectionOptions;
@@ -27,24 +27,26 @@ export namespace FTP {
 
 			this.client = new ftpClient();
 
-			this.client.on("ready", () => console.log(`FTP client connected to '${config.host}' as '${config.username}'.`));
+			this.client.on("ready", () => console.log(`FTP client connected to '${config.host}' as '${config.user}'.`));
 
-			this.client.on("error", (err) => console.error(`FTP client encountered an error while connected to '${config.host}.\n${err.toString()}'`));
+			this.client.on("error", (err) => console.error(`FTP client encountered an error while connected to '${config.host}'.\n${err.toString()}`));
+
+			this.client.on("close", (hadErr) => hadErr && console.log(`FTP client connected to '${config.host}' disconnected after encountering an error.`));
 
 			this.client.connect(config);
 		}
 
 		list(path?: string): Promise<ftp.ListingElement[]> {
 			return new Promise((resolve, reject) => {
-				this.client.list(path ?? "", true, (err, list) => (err ? reject(err) : resolve(list)));
+				this.client.list(path ?? "", false, (err, list) => (err ? reject(err) : resolve(list)));
 			});
 		}
 
 		upload(file: string | NodeJS.ReadableStream | Buffer, destPath: string): Promise<void> {
 			return new Promise((resolve, reject) => {
 				this.client.lastMod(destPath, (err) => {
-					if (err) this.client.put(file, destPath, true, (err) => (err ? reject(err) : resolve()));
-					else this.client.append(file, destPath, true, (err) => (err ? reject(err) : resolve()));
+					if (err) this.client.put(file, destPath, false, (err) => (err ? reject(err) : resolve()));
+					else this.client.append(file, destPath, false, (err) => (err ? reject(err) : resolve()));
 				});
 			});
 		}

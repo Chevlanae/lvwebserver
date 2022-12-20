@@ -22,13 +22,12 @@
 	"name": "lvwebserver",
 	"version": "1.0.0",
 	"private": "true",
-	"main": "app.ts",
+	"main": "./dist/app.js",
 	"module": "esnext",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build-public": "webpack",
-		"dev": "nodemon app.ts",
-		"start": "ts-node -T app.ts"
+		"build": "webpack && tsc",
+		"dev": "nodemon ./src/app.ts"
 	},
 	"author": "Leah Vance",
 	"license": "ISC",

@@ -32,27 +32,30 @@ export namespace User {
 
 	export type ModelType = Model<BaseType, {}, DocumentMethods>;
 
-	export const ModelSchema = new Schema<BaseType, ModelType, DocumentMethods>({
-		username: { type: String, index: true, required: true },
-		password: { type: String },
-		email: {
-			value: { type: String, required: true },
-			verified: { type: Boolean, default: false, required: true },
-		},
-		permissions: {
-			filesystem: {
-				read: { type: Boolean, default: false, required: true },
-				write: { type: Boolean, default: false, required: true },
+	export const ModelSchema = new Schema<BaseType, ModelType, DocumentMethods>(
+		{
+			username: { type: String, index: true, required: true },
+			password: { type: String },
+			email: {
+				value: { type: String, required: true },
+				verified: { type: Boolean, default: false, required: true },
 			},
-			roles: {
-				UserInterface: { type: Boolean, default: true, required: true },
-				superUser: { type: Boolean, default: false, required: true },
-				admin: { type: Boolean, default: false, required: true },
-				owner: { type: Boolean, default: false, required: true },
+			permissions: {
+				filesystem: {
+					read: { type: Boolean, default: false, required: true },
+					write: { type: Boolean, default: false, required: true },
+				},
+				roles: {
+					user: { type: Boolean, default: true, required: true },
+					superUser: { type: Boolean, default: false, required: true },
+					admin: { type: Boolean, default: false, required: true },
+					owner: { type: Boolean, default: false, required: true },
+				},
 			},
+			secret: { type: Buffer, default: randomBytes(512), required: true },
 		},
-		secret: { type: Buffer, default: randomBytes(512), required: true },
-	});
+		{ collection: "users" }
+	);
 
 	ModelSchema.method("setPassword", async function (newPassword: string) {
 		this.password = await argon2.hash(newPassword, {

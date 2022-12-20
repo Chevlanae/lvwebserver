@@ -3,11 +3,14 @@
 		"target": "esnext",
 		"module": "CommonJS",
 		"moduleResolution": "node",
-		"rootDir": "./",
-		"outDir": "./bin",
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"declarationDir": "./src",
 		"esModuleInterop": true,
 		"strict": true,
 		"declaration": true
 	},
-	"types": ["node", "nodemailer", "express", "cors", "csurf", "serve-favicon", "express-session"]
+	"types": ["node", "nodemailer", "express", "cors", "csurf", "serve-favicon", "express-session"],
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "webpack.config.js", ".vscode"]
 }

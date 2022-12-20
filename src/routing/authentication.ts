@@ -6,8 +6,8 @@ import { randomBytes } from "crypto";
 
 import { User } from "../models";
 import { validateParams, authCheck } from "../middleware";
-import { CustomResponse } from "../types";
 import { Temp, Email } from "../utils";
+import { Routing } from "../types";
 
 const authRouter = express.Router();
 
@@ -15,10 +15,13 @@ const authRouter = express.Router();
 authRouter.use(csurf());
 
 //*LOGIN*//
+
+//> GET
 authRouter.get("/login", function (req, res) {
 	res.render("auth/login/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
 
+//> POST
 authRouter.post(
 	"/login",
 	checkSchema({
@@ -36,7 +39,7 @@ authRouter.post(
 		},
 	}),
 	validateParams,
-	async function (req: express.Request, res: CustomResponse.API) {
+	async function (req: express.Request, res: Routing.Response.API) {
 		let formData = matchedData(req, { locations: ["query", "body"] }), //match form data
 			queriedUser = await User.Model.findOne({ username: formData.username }).exec(); //query db
 
@@ -73,10 +76,13 @@ authRouter.post(
 );
 
 //*SIGNUP*//
+
+//> GET
 authRouter.get("/signup", function (req, res) {
 	res.render("auth/signup/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
 
+//> POST
 authRouter.post(
 	"/signup",
 	checkSchema({
@@ -128,7 +134,7 @@ authRouter.post(
 		},
 	}),
 	validateParams,
-	async function (req: express.Request, res: CustomResponse.API) {
+	async function (req: express.Request, res: Routing.Response.API) {
 		let formData = matchedData(req, { locations: ["query", "body"] }), //match form data
 			existingUser = await User.Model.findOne({ username: formData.username }).exec(); //query for a possible exising user
 
@@ -158,10 +164,8 @@ authRouter.post(
 			req.session.secret = newUser.secret;
 			req.session.tempData = Temp.handler();
 
-			console.log(req.session);
-
 			//redirect to email confirmation page
-			res.redirect("/signup/confirm/");
+			res.redirect("/auth/signup/confirm/");
 		}
 		//existing user
 		else
@@ -174,6 +178,8 @@ authRouter.post(
 );
 
 //*CONFIRM EMAIL*//
+
+//> GET
 authRouter.get(
 	"/signup/confirm",
 	authCheck("user"),
@@ -181,15 +187,15 @@ authRouter.get(
 	validateParams,
 	async function (req: express.Request, res: express.Response) {
 		let formData = matchedData(req, { locations: ["query", "body"] }), //match schema with received data
-			receivedToken = Buffer.from(formData?.token || "", "base64url"), //Buffer created from received token, or empty string if there is none
-			associatedToken = <Buffer>(req.session.tempData["emailToken"] || Buffer.from("", "utf-8")), //Token stored in req.session.tempData.emailToken
+			receivedToken = formData?.token ? Buffer.from(formData.token, "base64url") : undefined, //Buffer created from received token, or "none" if there is none
+			associatedToken = Buffer.from(req.session.tempData["emailToken"] ?? "", "base64url"), //Token stored in req.session.tempData.emailToken
 			user = await User.Model.findById(req.session["mongoId"]).exec(); //queried user
 
 		//! Possible Errors
 
 		//if query failed, return an error and render associated page in "/errors/"
 		if (user === null)
-			return res.status(500).render("/errors/boilerplate.pug", {
+			return res.status(500).render("errors/boilerplate.pug", {
 				status: 500,
 				message: "User not found",
 				errors: [`Could not find user with ID "${req.session.mongoId?.toString()}".`],
@@ -197,7 +203,7 @@ authRouter.get(
 			});
 		//if queried user has no set email (not likely), return an error and render associated page in "/errors/"
 		else if (user.email === undefined)
-			return res.status(500).render("/errors/boilerplate.pug", {
+			return res.status(500).render("errors/boilerplate.pug", {
 				status: 500,
 				message: "No email associated with this user.",
 				errors: [`User "${req.session["username"]}" does not have an email address associated with their account.`],
@@ -205,9 +211,8 @@ authRouter.get(
 			});
 
 		//! Main Operation
-
 		//if no token, render index page
-		if (formData?.token === undefined) res.render("auth/confirm/index.pug", { csrfToken: req.csrfToken() });
+		if (receivedToken === undefined) return res.render("auth/confirm/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 		//check if receivedToken is equal to associatedToken
 		else if (receivedToken.equals(associatedToken)) {
 			//save changes to db
@@ -220,7 +225,7 @@ authRouter.get(
 		}
 		//if check fails, return an error and redirect to req.path
 		else
-			res.status(400).render("/errors/boilerplate.pug", {
+			return res.status(400).render("errors/boilerplate.pug", {
 				status: 400,
 				message: "Invalid token",
 				errors: [`Received token "${receivedToken}" does not match user's stored token.`],
@@ -229,7 +234,8 @@ authRouter.get(
 	}
 );
 
-authRouter.post("/signup/confirm", authCheck("user"), async function (req: express.Request, res: CustomResponse.API) {
+//> POST
+authRouter.post("/signup/confirm", authCheck("user"), async function (req: express.Request, res: Routing.Response.API) {
 	if (req.session.email === undefined)
 		res.status(500).json({
 			status: "ERROR",
@@ -246,7 +252,7 @@ authRouter.post("/signup/confirm", authCheck("user"), async function (req: expre
 		let newToken = randomBytes(2 ** 6),
 			transporter = new Email.Transporter("sendmail"),
 			email = await transporter.send({
-				to: req.session["email"],
+				to: req.session.email,
 				subject: "Verify your email",
 				html: `<a href="https://${req.hostname}${req.baseUrl}${req.path}?token=${newToken.toString("base64url")}" target="_blank">Click here to verify your email.</a>`,
 			});
@@ -265,11 +271,12 @@ authRouter.post("/signup/confirm", authCheck("user"), async function (req: expre
 	}
 });
 
+//*CONFIRM SUCCESS*//
 authRouter.get("/signup/confirm/success", authCheck("user"), async function (req: express.Request, res: express.Response) {
-	res.render("/auth/confirm/verified.pug", { redirect: req.session?.tempData["redirect"] || "/home", session: req.session });
+	res.render("/auth/confirm/verified.pug", { session: req.session });
 });
 
-//*REDIRECT ALL UNMATCHED ROUTES TO LOGIN*//
+//*REDIRECT UNMATCHED ROUTES TO LOGIN*//
 authRouter.get("*", function (req, res) {
 	res.redirect("/login");
 });
