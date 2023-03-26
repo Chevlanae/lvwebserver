@@ -4,7 +4,7 @@ import type { ConnectionOptions } from "tls";
 const ftpClient = require("ftp");
 
 //reason for this util?
-//grug no like callbacks
+//me not like callbacks
 
 export namespace FTP {
 	type connectionConfig = {
@@ -17,7 +17,7 @@ export namespace FTP {
 		secureOptions?: ConnectionOptions;
 	};
 
-	export class handler {
+	export class Handler {
 		config: connectionConfig;
 
 		client: ftp;

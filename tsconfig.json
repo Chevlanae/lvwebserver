@@ -5,10 +5,8 @@
 		"moduleResolution": "node",
 		"rootDir": "./src",
 		"outDir": "./dist",
-		"declarationDir": "./src",
 		"esModuleInterop": true,
-		"strict": true,
-		"declaration": true
+		"strict": true
 	},
 	"types": ["node", "nodemailer", "express", "cors", "csurf", "serve-favicon", "express-session"],
 	"include": ["src/**/*"],

@@ -5,6 +5,7 @@ module.exports = {
 		login: "./views/auth/login/src/index.js",
 		signup: "./views/auth/signup/src/index.js",
 		confirm: "./views/auth/confirm/src/index.js",
+		user: "./views/user/src/index.js",
 	},
 	output: {
 		filename: "[name].js",

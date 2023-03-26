@@ -15,9 +15,11 @@ const authRouter = express_1.default.Router();
 //*CSRF*//
 authRouter.use((0, csurf_1.default)());
 //*LOGIN*//
+//> GET
 authRouter.get("/login", function (req, res) {
     res.render("auth/login/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
+//> POST
 authRouter.post("/login", (0, express_validator_1.checkSchema)({
     username: {
         in: ["query", "body"],
@@ -64,9 +66,11 @@ authRouter.post("/login", (0, express_validator_1.checkSchema)({
         });
 });
 //*SIGNUP*//
+//> GET
 authRouter.get("/signup", function (req, res) {
     res.render("auth/signup/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
+//> POST
 authRouter.post("/signup", (0, express_validator_1.checkSchema)({
     email: {
         in: ["query", "body"],
@@ -150,6 +154,7 @@ authRouter.post("/signup", (0, express_validator_1.checkSchema)({
         });
 });
 //*CONFIRM EMAIL*//
+//> GET
 authRouter.get("/signup/confirm", (0, middleware_1.authCheck)("user"), (0, express_validator_1.checkSchema)({ token: { in: ["query", "body"], optional: true, isBase64: { options: { urlSafe: true } } } }), middleware_1.validateParams, async function (req, res) {
     let formData = (0, express_validator_1.matchedData)(req, { locations: ["query", "body"] }), //match schema with received data
     receivedToken = formData?.token ? Buffer.from(formData.token, "base64url") : undefined, //Buffer created from received token, or "none" if there is none
@@ -194,6 +199,7 @@ authRouter.get("/signup/confirm", (0, middleware_1.authCheck)("user"), (0, expre
             session: req.session,
         });
 });
+//> POST
 authRouter.post("/signup/confirm", (0, middleware_1.authCheck)("user"), async function (req, res) {
     if (req.session.email === undefined)
         res.status(500).json({
@@ -225,10 +231,11 @@ authRouter.post("/signup/confirm", (0, middleware_1.authCheck)("user"), async fu
         });
     }
 });
+//*CONFIRM SUCCESS*//
 authRouter.get("/signup/confirm/success", (0, middleware_1.authCheck)("user"), async function (req, res) {
     res.render("/auth/confirm/verified.pug", { session: req.session });
 });
-//*REDIRECT ALL UNMATCHED ROUTES TO LOGIN*//
+//*REDIRECT UNMATCHED ROUTES TO LOGIN*//
 authRouter.get("*", function (req, res) {
     res.redirect("/login");
 });

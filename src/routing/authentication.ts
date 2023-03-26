@@ -7,24 +7,12 @@ import { randomBytes } from "crypto";
 import { User } from "../models";
 import { validateParams, authCheck } from "../middleware";
 import { Temp, Email } from "../utils";
+
 import { Routing } from "../types";
+import type { Schema } from "express-validator";
 
-const authRouter = express.Router();
-
-//*CSRF*//
-authRouter.use(csurf());
-
-//*LOGIN*//
-
-//> GET
-authRouter.get("/login", function (req, res) {
-	res.render("auth/login/index.pug", { csrfToken: req.csrfToken(), session: req.session });
-});
-
-//> POST
-authRouter.post(
-	"/login",
-	checkSchema({
+export const ParameterSchemas: { [key: string]: Schema } = {
+	login: {
 		username: {
 			in: ["query", "body"],
 			exists: true,
@@ -37,55 +25,8 @@ authRouter.post(
 			isString: true,
 			trim: true,
 		},
-	}),
-	validateParams,
-	async function (req: express.Request, res: Routing.Response.API) {
-		let formData = matchedData(req, { locations: ["query", "body"] }), //match form data
-			queriedUser = await User.Model.findOne({ username: formData.username }).exec(); //query db
-
-		//query fails
-		if (queriedUser === null)
-			res.status(400).json({
-				status: "ERROR",
-				message: "Invalid Username",
-				errors: [`User query failed. User "${formData.username}" does not exist.`],
-			});
-		//password matches
-		else if (await queriedUser.checkPassword(formData.password)) {
-			//set session data
-			req.session.isAuthenticated = true;
-			req.session.mongoId = queriedUser._id;
-			req.session.username = queriedUser.username;
-			req.session.email = queriedUser?.email?.value;
-			req.session.emailVerified = queriedUser.email?.verified;
-			req.session.secret = queriedUser.secret;
-			req.session.roles = queriedUser.permissions.roles;
-			req.session.tempData = Temp.handler(); //deletes any properties after 30 minutes
-
-			//redirect to home
-			res.status(200).redirect("../home");
-		}
-		//password does not match
-		else
-			res.status(400).json({
-				status: "ERROR",
-				message: "Invalid Password",
-				errors: ["Provided password does not match stored hash"],
-			});
-	}
-);
-
-//*SIGNUP*//
-
-//> GET
-authRouter.get("/signup", function (req, res) {
-	res.render("auth/signup/index.pug", { csrfToken: req.csrfToken(), session: req.session });
-});
-
-//> POST
-authRouter.post(
-	"/signup",
-	checkSchema({
+	},
+	signup: {
 		email: {
 			in: ["query", "body"],
 			exists: true,
@@ -132,107 +73,157 @@ authRouter.post(
 				errorMessage: "Missing either a capital letter, a number, a special character, or the password contains a space.",
 			},
 		},
-	}),
-	validateParams,
-	async function (req: express.Request, res: Routing.Response.API) {
-		let formData = matchedData(req, { locations: ["query", "body"] }), //match form data
-			existingUser = await User.Model.findOne({ username: formData.username }).exec(); //query for a possible exising user
+	},
+	confirm: { token: { in: ["query", "body"], optional: true, isBase64: { options: { urlSafe: true } } } },
+};
 
-		//no existing user
-		if (existingUser === null) {
-			//create new user
-			let newUser = new User.Model({
-				username: formData.username,
-				email: {
-					value: formData.email,
-					verified: false,
-				},
-			});
+const authRouter = express.Router();
 
-			//hash password
-			await newUser.setPassword(formData.password);
+//*CSRF*//
+authRouter.use(csurf());
 
-			//save to db
-			await newUser.save();
+//*LOGIN*//
 
-			//set session data
-			req.session.isAuthenticated = true;
-			req.session.emailVerified = newUser.email?.verified;
-			req.session.username = newUser.username;
-			req.session.roles = newUser.permissions.roles;
-			req.session.mongoId = newUser._id;
-			req.session.secret = newUser.secret;
-			req.session.tempData = Temp.handler();
+//> GET
+authRouter.get("/login", function (req, res) {
+	res.render("auth/login/index.pug", { csrfToken: req.csrfToken(), session: req.session });
+});
 
-			//redirect to email confirmation page
-			res.redirect("/auth/signup/confirm/");
-		}
-		//existing user
-		else
-			res.status(400).json({
-				status: "ERROR",
-				message: "User already exists",
-				errors: [`User "${formData.username}" already exists.`],
-			});
+//> POST
+authRouter.post("/login", checkSchema(ParameterSchemas.login), validateParams, async function (req: express.Request, res: Routing.Response.API) {
+	let formData = matchedData(req, { locations: ["query", "body"] }), //match form data
+		queriedUser = await User.Model.findOne({ username: formData.username }).exec(); //query db
+
+	//query fails
+	if (queriedUser === null)
+		res.status(400).json({
+			status: "ERROR",
+			message: "Invalid Username",
+			errors: [`User query failed. User "${formData.username}" does not exist.`],
+		});
+	//password matches
+	else if (await queriedUser.checkPassword(formData.password)) {
+		//set session data
+		req.session.isAuthenticated = true;
+		req.session.mongoId = queriedUser._id;
+		req.session.username = queriedUser.username;
+		req.session.email = queriedUser?.email?.value;
+		req.session.emailVerified = queriedUser.email?.verified;
+		req.session.secret = queriedUser.secret;
+		req.session.roles = queriedUser.permissions.roles;
+
+		//redirect to home
+		res.status(200).redirect(req.session.tempData.redirect || "../home");
 	}
-);
+	//password does not match
+	else
+		res.status(400).json({
+			status: "ERROR",
+			message: "Invalid Password",
+			errors: ["Provided password does not match stored hash"],
+		});
+});
+
+//*SIGNUP*//
+
+//> GET
+authRouter.get("/signup", function (req, res) {
+	res.render("auth/signup/index.pug", { csrfToken: req.csrfToken(), session: req.session });
+});
+
+//> POST
+authRouter.post("/signup", checkSchema(ParameterSchemas.signup), validateParams, async function (req: express.Request, res: Routing.Response.API) {
+	let formData = matchedData(req, { locations: ["query", "body"] }), //match form data
+		existingUser = await User.Model.findOne({ username: formData.username }).exec(); //query for a possible exising user
+
+	//no existing user
+	if (existingUser === null) {
+		//create new user
+		let newUser = new User.Model({
+			username: formData.username,
+			email: {
+				value: formData.email,
+				verified: false,
+			},
+		});
+
+		//hash password
+		await newUser.setPassword(formData.password);
+
+		//save to db
+		await newUser.save();
+
+		//set session data
+		req.session.isAuthenticated = true;
+		req.session.emailVerified = newUser.email?.verified;
+		req.session.username = newUser.username;
+		req.session.roles = newUser.permissions.roles;
+		req.session.mongoId = newUser._id;
+		req.session.secret = newUser.secret;
+		req.session.tempData = Temp.handler();
+
+		//redirect to email confirmation page
+		res.redirect("/auth/signup/confirm/");
+	}
+	//existing user
+	else
+		res.status(400).json({
+			status: "ERROR",
+			message: "User already exists",
+			errors: [`User "${formData.username}" already exists.`],
+		});
+});
 
 //*CONFIRM EMAIL*//
 
 //> GET
-authRouter.get(
-	"/signup/confirm",
-	authCheck("user"),
-	checkSchema({ token: { in: ["query", "body"], optional: true, isBase64: { options: { urlSafe: true } } } }),
-	validateParams,
-	async function (req: express.Request, res: express.Response) {
-		let formData = matchedData(req, { locations: ["query", "body"] }), //match schema with received data
-			receivedToken = formData?.token ? Buffer.from(formData.token, "base64url") : undefined, //Buffer created from received token, or "none" if there is none
-			associatedToken = Buffer.from(req.session.tempData["emailToken"] ?? "", "base64url"), //Token stored in req.session.tempData.emailToken
-			user = await User.Model.findById(req.session["mongoId"]).exec(); //queried user
+authRouter.get("/signup/confirm", authCheck("user"), checkSchema(ParameterSchemas.confirm), validateParams, async function (req: express.Request, res: express.Response) {
+	let formData = matchedData(req, { locations: ["query", "body"] }), //match schema with received data
+		receivedToken = formData?.token ? Buffer.from(formData.token, "base64url") : undefined, //Buffer created from received token, or "none" if there is none
+		associatedToken = Buffer.from(req.session.tempData["emailToken"] ?? "", "base64url"), //Token stored in req.session.tempData.emailToken
+		user = await User.Model.findById(req.session["mongoId"]).exec(); //queried user
 
-		//! Possible Errors
+	//! Possible Errors
 
-		//if query failed, return an error and render associated page in "/errors/"
-		if (user === null)
-			return res.status(500).render("errors/boilerplate.pug", {
-				status: 500,
-				message: "User not found",
-				errors: [`Could not find user with ID "${req.session.mongoId?.toString()}".`],
-				session: req.session,
-			});
-		//if queried user has no set email (not likely), return an error and render associated page in "/errors/"
-		else if (user.email === undefined)
-			return res.status(500).render("errors/boilerplate.pug", {
-				status: 500,
-				message: "No email associated with this user.",
-				errors: [`User "${req.session["username"]}" does not have an email address associated with their account.`],
-				session: req.session,
-			});
+	//if query failed, return an error and render associated page in "/errors/"
+	if (user === null)
+		return res.status(500).render("errors/boilerplate.pug", {
+			status: 500,
+			message: "User not found",
+			errors: [`Could not find user with ID "${req.session.mongoId?.toString()}".`],
+			session: req.session,
+		});
+	//if queried user has no set email (not likely), return an error and render associated page in "/errors/"
+	else if (user.email === undefined)
+		return res.status(500).render("errors/boilerplate.pug", {
+			status: 500,
+			message: "No email associated with this user.",
+			errors: [`User "${req.session["username"]}" does not have an email address associated with their account.`],
+			session: req.session,
+		});
 
-		//! Main Operation
-		//if no token, render index page
-		if (receivedToken === undefined) return res.render("auth/confirm/index.pug", { csrfToken: req.csrfToken(), session: req.session });
-		//check if receivedToken is equal to associatedToken
-		else if (receivedToken.equals(associatedToken)) {
-			//save changes to db
-			user.email.verified = true;
-			await user.save();
+	//! Main Operation
+	//if no token, render index page
+	if (receivedToken === undefined) return res.render("auth/confirm/index.pug", { csrfToken: req.csrfToken(), session: req.session });
+	//check if receivedToken is equal to associatedToken
+	else if (receivedToken.equals(associatedToken)) {
+		//save changes to db
+		user.email.verified = true;
+		await user.save();
 
-			//set session data and redirect to /signup/confirm/success
-			req.session.emailVerified = true;
-			return res.redirect("/signup/confirm/success");
-		}
-		//if check fails, return an error and redirect to req.path
-		else
-			return res.status(400).render("errors/boilerplate.pug", {
-				status: 400,
-				message: "Invalid token",
-				errors: [`Received token "${receivedToken}" does not match user's stored token.`],
-				session: req.session,
-			});
+		//set session data and redirect to /signup/confirm/success
+		req.session.emailVerified = true;
+		return res.redirect("/signup/confirm/success");
 	}
-);
+	//if check fails, return an error and redirect to req.path
+	else
+		return res.status(400).render("errors/boilerplate.pug", {
+			status: 400,
+			message: "Invalid token",
+			errors: [`Received token "${receivedToken}" does not match user's stored token.`],
+			session: req.session,
+		});
+});
 
 //> POST
 authRouter.post("/signup/confirm", authCheck("user"), async function (req: express.Request, res: Routing.Response.API) {

@@ -1,17 +1,27 @@
-import postJSON from "../../../utils/postJSON.js";
+import { postJSON } from "../../../utils/api";
 
-const origin = window.origin;
+var username = document.querySelector("input#username"),
+	password = document.querySelector("input#password"),
+	csrfToken = document.querySelector("input#csrf"),
+	submit = document.querySelector("#submit"),
+	errorBox = document.querySelector("#errorBox");
 
 function login() {
-	var username = document.getElementById("username").value,
-		password = document.getElementById("password").value,
-		csrfToken = document.getElementById("csrf").value;
+	postJSON("/auth/login", {
+		username: username.value,
+		password: password.value,
+		_csrf: csrfToken.value,
+	}).then((response) => {
+		if (response.status === "ERROR") {
+			username.value = "";
+			password.value = "";
 
-	postJSON(origin + "/auth/login", {
-		username: username,
-		password: password,
-		_csrf: csrfToken,
+			errorBox.style.display = "block";
+			errorBox.innerHTML = response.message;
+		}
 	});
 }
 
-document.getElementById("submit").onclick = login;
+username.addEventListener("keyup", (event) => event.key === "Enter" && login());
+password.addEventListener("keyup", (event) => event.key === "Enter" && login());
+submit.addEventListener("click", login);

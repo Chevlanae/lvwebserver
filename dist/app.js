@@ -66,7 +66,7 @@ app.use(session({
 app.use(middleware.cors); //cors handler
 app.use((0, helmet_1.default)()); //security headers
 app.use(body_parser_1.default.json({ limit: "5mb" })); //json only body-parser
-app.use(favicon(__dirname + "/public/images/favicon.ico")); //favicon
+app.use(favicon("./public/images/favicon.ico")); //favicon
 //views
 app.set("view engine", "pug");
 app.set("views", "./views");

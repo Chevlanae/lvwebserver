@@ -1,5 +1,4 @@
-import postJSON from "../../../utils/postJSON.js";
-import * as swal from "sweetalert2";
+import { postJSON } from "../../../utils/api";
 
 const origin = window.origin;
 

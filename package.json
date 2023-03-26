@@ -8,16 +8,22 @@
 		"express": "^4.17.1",
 		"express-session": "^1.17.2",
 		"express-validator": "^6.13.0",
+		"fs": "^0.0.1-security",
 		"ftp": "^0.3.10",
 		"helmet": "^4.6.0",
+		"http": "^0.0.1-security",
 		"mongoose": "^6.2.9",
 		"nodemailer": "^6.7.0",
+		"path": "^0.12.7",
+		"process": "^0.11.10",
 		"pug": "^3.0.2",
 		"rate-limiter-flexible": "^2.3.5",
 		"serve-favicon": "^2.5.0",
-		"sweetalert2": "^11.1.10",
+		"stream": "^0.0.2",
+		"url": "^0.11.0",
 		"webpack": "^5.64.2",
-		"webpack-cli": "^4.9.1"
+		"webpack-cli": "^4.9.1",
+		"zlib": "^1.0.5"
 	},
 	"name": "lvwebserver",
 	"version": "1.0.0",
@@ -27,13 +33,11 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "webpack && tsc",
-		"dev": "nodemon ./src/app.ts"
+		"development": "webpack && nodemon ./src/app.ts",
+		"production": "npm run build && node ./dist/app.js"
 	},
 	"author": "Leah Vance",
 	"license": "ISC",
-	"bin": {
-		"execute": "webpack && nodemon app.ts"
-	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/Chevlanae/lvwebserver.git"

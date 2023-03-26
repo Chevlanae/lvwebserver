@@ -157,6 +157,8 @@ export namespace Config {
 
 			//write outFile
 			await fs.promises.writeFile(this.filepath, outFile, "utf-8");
+
+			this.read();
 		}
 	}
 }

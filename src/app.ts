@@ -47,17 +47,18 @@ app.use(
 app.use(middleware.cors); //cors handler
 app.use(helmet()); //security headers
 app.use(bodyParser.json({ limit: "5mb" })); //json only body-parser
-app.use(favicon(__dirname + "/public/images/favicon.ico")); //favicon
+app.use(favicon("./public/images/favicon.ico")); //favicon
+app.use(middleware.setSession);
 
 //views
 app.set("view engine", "pug");
-app.set("views", "../views");
+app.set("views", "./views");
 
 //routing
 app.use("/", rootRouter);
 
 //public files
-app.use("/public", express.static("../public"));
+app.use("/public", express.static("./public"));
 
 //route all unmatched URLs to '/home'
 app.get("*", function (req, res) {

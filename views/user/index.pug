@@ -1,0 +1,25 @@
+extends ../layout.pug
+
+block append body
+    div(class="centered container" style="padding: 3em")
+        div(class="flexDiv" style="margin: auto;")
+            div(style="height:200px; width: 200px")
+                h3 Username 
+                span(id="username")
+                    = session.username
+                h3 Email 
+                span(id="email")
+                    = session.email
+                br
+                span 
+                    b Verified? 
+                    if session.emailVerified 
+                        span(style="color: green") True 
+                    else
+                        span(style="color: red") False 
+            div(id="accountOptions" class="flexDiv" style="margin-top: 2em;") 
+                input(type="button" value="Edit Username" id="changeUsername")
+                input(type="button" value="Edit Email" id="changeEmail")
+                input(type="button" value="Change Password" id="changePassword")
+    script(src="/public/scripts/user.js")
+

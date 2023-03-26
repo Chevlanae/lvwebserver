@@ -8,6 +8,15 @@ import { RateLimiterMongo } from "rate-limiter-flexible";
 
 import { User } from "./models";
 import { Routing } from "./types";
+import { Temp } from "./utils";
+
+export const setSession: RequestHandler = function (req, res, next) {
+	//set session data
+	if (req.session.tempData === undefined) {
+		req.session.tempData = Temp.handler(); //deletes any properties after 30 minutes
+	}
+	next();
+};
 
 /**
  * Generates a function that checks req.session for isAuthenticated = true, and whitelists user roles with the given "...allowedRoles".
@@ -21,12 +30,8 @@ export const authCheck = function (...allowedRoles: (keyof User.BaseType["permis
 			if (allowedRoles.some((allowedRole) => req.session.roles !== undefined && req.session.roles[allowedRole])) next();
 			else res.status(403).render("errors/unauthorized.pug");
 		} else {
-			let redirect: string;
-
-			if (req.session.tempData !== undefined) req.session.tempData["redirect"] = redirect = req.originalUrl;
-			else redirect = "/home";
-
-			res.status(403).render("errors/login-required.pug", { redirect: redirect });
+			req.session.tempData.redirect = req.originalUrl;
+			res.status(403).render("errors/login-required.pug", { redirect: req.originalUrl });
 		}
 	};
 

@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FTP = void 0;
 const ftpClient = require("ftp");
 //reason for this util?
-//me no like callbacks.
+//me not like callbacks
 var FTP;
 (function (FTP) {
-    class handler {
+    class Handler {
         config;
         client;
         constructor(config) {
@@ -87,5 +87,5 @@ var FTP;
             this.client.connect(this.config);
         }
     }
-    FTP.handler = handler;
+    FTP.Handler = Handler;
 })(FTP = exports.FTP || (exports.FTP = {}));
