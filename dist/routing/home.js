@@ -9,3 +9,4 @@ homeRouter.get("/", function (req, res) {
     res.render("home/index.pug", { session: req.session });
 });
 exports.default = homeRouter;
+//# sourceMappingURL=home.js.map

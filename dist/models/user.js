@@ -61,3 +61,4 @@ var User;
     });
     User.Model = (0, mongoose_1.model)("BaseType", User.ModelSchema);
 })(User = exports.User || (exports.User = {}));
+//# sourceMappingURL=user.js.map

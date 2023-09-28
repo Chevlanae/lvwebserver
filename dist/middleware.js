@@ -1,9 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cors = exports.rateLimiter = exports.validateParams = exports.authCheck = void 0;
+exports.cors = exports.rateLimiter = exports.validateParams = exports.authCheck = exports.setSession = void 0;
 const corsModule = require("cors");
 const express_validator_1 = require("express-validator");
 const rate_limiter_flexible_1 = require("rate-limiter-flexible");
+const utils_1 = require("./utils");
+const setSession = function (req, res, next) {
+    //set session data
+    if (req.session.tempData === undefined) {
+        req.session.tempData = utils_1.Temp.handler(); //deletes any properties after 30 minutes
+    }
+    next();
+};
+exports.setSession = setSession;
 /**
  * Generates a function that checks req.session for isAuthenticated = true, and whitelists user roles with the given "...allowedRoles".
  * If isAuthenticated = false it redirects to the login page.
@@ -19,12 +28,8 @@ const authCheck = function (...allowedRoles) {
                 res.status(403).render("errors/unauthorized.pug");
         }
         else {
-            let redirect;
-            if (req.session.tempData !== undefined)
-                req.session.tempData["redirect"] = redirect = req.originalUrl;
-            else
-                redirect = "/home";
-            res.status(403).render("errors/login-required.pug", { redirect: redirect });
+            req.session.tempData.redirect = req.originalUrl;
+            res.status(403).render("errors/login-required.pug", { redirect: req.originalUrl });
         }
     };
     return middleware;
@@ -69,3 +74,4 @@ exports.rateLimiter = rateLimiter;
 const corsOptions = (req, callback) => callback(null, { origin: config.originAllowList.some((value) => value === req.headers.origin) });
 //generate cors middleware
 exports.cors = corsModule(corsOptions);
+//# sourceMappingURL=middleware.js.map

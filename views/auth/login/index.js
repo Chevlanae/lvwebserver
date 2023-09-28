@@ -1,4 +1,4 @@
-import { postJSON } from "../../../utils/api";
+import { postJSON } from "../../utils/api";
 
 var username = document.querySelector("input#username"),
 	password = document.querySelector("input#password"),

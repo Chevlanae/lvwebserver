@@ -12,3 +12,4 @@ rootRouter.use("/auth", authentication_1.default);
 rootRouter.use("/home", home_1.default);
 rootRouter.use("/user", user_1.default);
 exports.default = rootRouter;
+//# sourceMappingURL=index.js.map

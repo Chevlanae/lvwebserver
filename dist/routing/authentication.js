@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ParameterSchemas = void 0;
 //modules
 const express_validator_1 = require("express-validator");
 const express_1 = __importDefault(require("express"));
@@ -11,6 +12,70 @@ const crypto_1 = require("crypto");
 const models_1 = require("../models");
 const middleware_1 = require("../middleware");
 const utils_1 = require("../utils");
+exports.ParameterSchemas = {
+    login: {
+        username: {
+            in: ["query", "body"],
+            exists: true,
+            isString: true,
+            trim: true,
+        },
+        password: {
+            in: ["query", "body"],
+            exists: true,
+            isString: true,
+            trim: true,
+        },
+    },
+    signup: {
+        email: {
+            in: ["query", "body"],
+            exists: true,
+            isString: true,
+            trim: true,
+            isEmail: true,
+            isLength: {
+                errorMessage: "Email cannot be longer than 50 characters.",
+                options: { max: 50 },
+            },
+        },
+        username: {
+            in: ["query", "body"],
+            exists: true,
+            isString: true,
+            trim: true,
+            isLength: {
+                errorMessage: "Username must be between 5 and 30 characters long.",
+                options: { min: 5, max: 30 },
+            },
+        },
+        password: {
+            in: ["query", "body"],
+            exists: true,
+            isString: true,
+            trim: true,
+            isLength: {
+                errorMessage: "Password must be between 13 and 30 characters long.",
+                options: { min: 13, max: 30 },
+            },
+            custom: {
+                options: (value) => {
+                    //! Custom regex requirements
+                    //? format: [regex string, desired test result]
+                    let regex = [
+                        [`[A-Z]`, true],
+                        [`[0-9]`, true],
+                        [`[^a-zA-Z0-9_]`, true],
+                        [`/ `, false], //No spaces
+                    ];
+                    return regex.every((regexOptions) => RegExp(regexOptions[0]).test(value) === regexOptions[1]);
+                },
+                errorMessage: "Missing either a capital letter, a number, a special character, or the password contains a space.",
+            },
+        },
+    },
+    confirm: { token: { in: ["query", "body"], optional: true, isBase64: { options: { urlSafe: true } } } },
+};
 const authRouter = express_1.default.Router();
 //*CSRF*//
 authRouter.use((0, csurf_1.default)());
@@ -20,20 +85,7 @@ authRouter.get("/login", function (req, res) {
     res.render("auth/login/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
 //> POST
-authRouter.post("/login", (0, express_validator_1.checkSchema)({
-    username: {
-        in: ["query", "body"],
-        exists: true,
-        isString: true,
-        trim: true,
-    },
-    password: {
-        in: ["query", "body"],
-        exists: true,
-        isString: true,
-        trim: true,
-    },
-}), middleware_1.validateParams, async function (req, res) {
+authRouter.post("/login", (0, express_validator_1.checkSchema)(exports.ParameterSchemas.login), middleware_1.validateParams, async function (req, res) {
     let formData = (0, express_validator_1.matchedData)(req, { locations: ["query", "body"] }), //match form data
     queriedUser = await models_1.User.Model.findOne({ username: formData.username }).exec(); //query db
     //query fails
@@ -53,9 +105,8 @@ authRouter.post("/login", (0, express_validator_1.checkSchema)({
         req.session.emailVerified = queriedUser.email?.verified;
         req.session.secret = queriedUser.secret;
         req.session.roles = queriedUser.permissions.roles;
-        req.session.tempData = utils_1.Temp.handler(); //deletes any properties after 30 minutes
         //redirect to home
-        res.status(200).redirect("../home");
+        res.status(200).redirect(req.session.tempData.redirect || "../home");
     }
     //password does not match
     else
@@ -71,53 +122,7 @@ authRouter.get("/signup", function (req, res) {
     res.render("auth/signup/index.pug", { csrfToken: req.csrfToken(), session: req.session });
 });
 //> POST
-authRouter.post("/signup", (0, express_validator_1.checkSchema)({
-    email: {
-        in: ["query", "body"],
-        exists: true,
-        isString: true,
-        trim: true,
-        isEmail: true,
-        isLength: {
-            errorMessage: "Email cannot be longer than 50 characters.",
-            options: { max: 50 },
-        },
-    },
-    username: {
-        in: ["query", "body"],
-        exists: true,
-        isString: true,
-        trim: true,
-        isLength: {
-            errorMessage: "Username must be between 5 and 30 characters long.",
-            options: { min: 5, max: 30 },
-        },
-    },
-    password: {
-        in: ["query", "body"],
-        exists: true,
-        isString: true,
-        trim: true,
-        isLength: {
-            errorMessage: "Password must be between 13 and 30 characters long.",
-            options: { min: 13, max: 30 },
-        },
-        custom: {
-            options: (value) => {
-                //! Custom regex requirements
-                //? format: [regex string, desired test result]
-                let regex = [
-                    [`[A-Z]`, true],
-                    [`[0-9]`, true],
-                    [`[^a-zA-Z0-9_]`, true],
-                    [`/ `, false], //No spaces
-                ];
-                return regex.every((regexOptions) => RegExp(regexOptions[0]).test(value) === regexOptions[1]);
-            },
-            errorMessage: "Missing either a capital letter, a number, a special character, or the password contains a space.",
-        },
-    },
-}), middleware_1.validateParams, async function (req, res) {
+authRouter.post("/signup", (0, express_validator_1.checkSchema)(exports.ParameterSchemas.signup), middleware_1.validateParams, async function (req, res) {
     let formData = (0, express_validator_1.matchedData)(req, { locations: ["query", "body"] }), //match form data
     existingUser = await models_1.User.Model.findOne({ username: formData.username }).exec(); //query for a possible exising user
     //no existing user
@@ -155,7 +160,7 @@ authRouter.post("/signup", (0, express_validator_1.checkSchema)({
 });
 //*CONFIRM EMAIL*//
 //> GET
-authRouter.get("/signup/confirm", (0, middleware_1.authCheck)("user"), (0, express_validator_1.checkSchema)({ token: { in: ["query", "body"], optional: true, isBase64: { options: { urlSafe: true } } } }), middleware_1.validateParams, async function (req, res) {
+authRouter.get("/signup/confirm", (0, middleware_1.authCheck)("user"), (0, express_validator_1.checkSchema)(exports.ParameterSchemas.confirm), middleware_1.validateParams, async function (req, res) {
     let formData = (0, express_validator_1.matchedData)(req, { locations: ["query", "body"] }), //match schema with received data
     receivedToken = formData?.token ? Buffer.from(formData.token, "base64url") : undefined, //Buffer created from received token, or "none" if there is none
     associatedToken = Buffer.from(req.session.tempData["emailToken"] ?? "", "base64url"), //Token stored in req.session.tempData.emailToken
@@ -240,3 +245,4 @@ authRouter.get("*", function (req, res) {
     res.redirect("/login");
 });
 exports.default = authRouter;
+//# sourceMappingURL=authentication.js.map

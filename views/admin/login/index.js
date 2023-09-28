@@ -1,4 +1,4 @@
-import postJSON from "../../../utils/postJSON.js";
+import { postJSON } from "../../utils/api";
 
 const origin = window.origin;
 

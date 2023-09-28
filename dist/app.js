@@ -67,6 +67,7 @@ app.use(middleware.cors); //cors handler
 app.use((0, helmet_1.default)()); //security headers
 app.use(body_parser_1.default.json({ limit: "5mb" })); //json only body-parser
 app.use(favicon("./public/images/favicon.ico")); //favicon
+app.use(middleware.setSession);
 //views
 app.set("view engine", "pug");
 app.set("views", "./views");
@@ -84,3 +85,4 @@ let server = https_1.default.createServer({
 }, app);
 //listen on given port
 server.listen(port, () => console.log("Server started on port " + port.toString()));
+//# sourceMappingURL=app.js.map

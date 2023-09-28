@@ -140,7 +140,9 @@ var Config;
                 outFile = JSON.stringify({ ...this.#data, data }, null, 2);
             //write outFile
             await fs.promises.writeFile(this.filepath, outFile, "utf-8");
+            this.read();
         }
     }
     Config.Handler = Handler;
 })(Config = exports.Config || (exports.Config = {}));
+//# sourceMappingURL=config.js.map

@@ -49,3 +49,4 @@ var Temp;
     }
     Temp.handler = handler;
 })(Temp = exports.Temp || (exports.Temp = {}));
+//# sourceMappingURL=temp.js.map

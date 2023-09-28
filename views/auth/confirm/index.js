@@ -1,4 +1,4 @@
-import { postJSON } from "../../../utils/api";
+import { postJSON } from "../../utils/api";
 
 const csrf = document.getElementById("csrf").value;
 

@@ -1,0 +1,1 @@
+document.getElementById("hamburger-icon").onclick=function(){var e=document.getElementById("header");"header"===e.className?e.className+=" responsive":e.className="header"};

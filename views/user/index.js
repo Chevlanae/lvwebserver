@@ -1,4 +1,4 @@
-import { postJSON, generateInvalidParameterTextElement } from "../../utils/api";
+import { postJSON, generateInvalidParameterTextElement } from "../utils/api";
 
 var username = document.querySelector("span#username");
 var email = document.querySelector("span#email");
