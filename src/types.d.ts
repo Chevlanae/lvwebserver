@@ -6,7 +6,7 @@ import { Types } from "mongoose";
 import session from "express-session";
 
 declare global {
-	var config: Config.Handler;
+	var config: Config;
 	var port: number;
 }
 
@@ -37,6 +37,7 @@ declare module "express-session" {
 		emailVerified: boolean;
 		secret: Buffer;
 		tempData: any;
+		[key: string]: any;
 	}
 }
 
@@ -50,11 +51,11 @@ declare namespace Routing {
 		};
 	}
 
-	namespace Methods {
-		export type API_json<T = express.Response> = (body?: JSONSchemas.API) => T;
-	}
-
 	export namespace Response {
+		namespace Methods {
+			export type API_json<T = express.Response> = (body?: JSONSchemas.API) => T;
+		}
+
 		export interface API extends express.Response {
 			json: Methods.API_json<this>;
 		}

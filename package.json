@@ -13,6 +13,7 @@
 		"glob": "^10.3.9",
 		"helmet": "^4.6.0",
 		"http": "^0.0.1-security",
+		"lodash": "^4.17.21",
 		"mongoose": "^6.2.9",
 		"nodemailer": "^6.7.0",
 		"path": "^0.12.7",
@@ -21,10 +22,8 @@
 		"rate-limiter-flexible": "^2.3.5",
 		"serve-favicon": "^2.5.0",
 		"stream": "^0.0.2",
-		"url": "^0.11.0",
 		"webpack": "^5.64.2",
-		"webpack-cli": "^4.9.1",
-		"zlib": "^1.0.5"
+		"webpack-cli": "^4.9.1"
 	},
 	"name": "lvwebserver",
 	"version": "1.0.0",
@@ -55,11 +54,11 @@
 		"@types/express-session": "^1.17.2",
 		"@types/ftp": "^0.3.33",
 		"@types/glob": "^8.1.0",
+		"@types/lodash": "^4.14.199",
 		"@types/node": "^17.0.45",
 		"@types/nodemailer": "^6.4.5",
 		"@types/serve-favicon": "^2.5.3",
 		"@types/webpack": "^5.28.3",
-		"@webpack-cli/generators": "^3.0.7",
 		"nodemon": "^2.0.22",
 		"ts-node": "^10.9.1",
 		"typescript": "^4.9.5"

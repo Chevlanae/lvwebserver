@@ -6,7 +6,7 @@ import { randomBytes } from "crypto";
 
 import { User } from "../models";
 import { validateParams, authCheck } from "../middleware";
-import { Temp, Email } from "../utils";
+import { temp, EmailTransporter } from "../utils";
 
 import { Routing } from "../types";
 import type { Schema } from "express-validator";
@@ -160,7 +160,7 @@ authRouter.post("/signup", checkSchema(ParameterSchemas.signup), validateParams,
 		req.session.roles = newUser.permissions.roles;
 		req.session.mongoId = newUser._id;
 		req.session.secret = newUser.secret;
-		req.session.tempData = Temp.handler();
+		req.session.tempData = temp();
 
 		//redirect to email confirmation page
 		res.redirect("/auth/signup/confirm/");
@@ -215,7 +215,7 @@ authRouter.get("/signup/confirm", authCheck("user"), checkSchema(ParameterSchema
 		req.session.emailVerified = true;
 		return res.redirect("/signup/confirm/success");
 	}
-	//if check fails, return an error and redirect to req.path
+	//if check fails, return an error
 	else
 		return res.status(400).render("errors/boilerplate.pug", {
 			status: 400,
@@ -241,7 +241,7 @@ authRouter.post("/signup/confirm", authCheck("user"), async function (req: expre
 		});
 	else {
 		let newToken = randomBytes(2 ** 6),
-			transporter = new Email.Transporter("sendmail"),
+			transporter = new EmailTransporter("sendmail"),
 			email = await transporter.send({
 				to: req.session.email,
 				subject: "Verify your email",
