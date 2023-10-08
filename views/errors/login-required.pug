@@ -1,0 +1,13 @@
+extends ../layout.pug
+
+block head
+    link(rel='stylesheet' href="/public/css/styles.css")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+
+block append body 
+    div(class="centered")
+            h1(style="text-align: center;") Login Required
+            div(class="container responsive" style="text-align: center; padding: 20px")
+                h2 Your session is unauthenticated.
+                p 
+                    | Please click <a href="/auth/login">here</a> to sign in to your account.

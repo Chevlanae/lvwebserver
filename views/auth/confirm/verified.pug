@@ -1,0 +1,10 @@
+extends ../../layout.pug
+
+block append body 
+    div(class="container centered" style="height: 400px; width: 400px;")
+            div(style="padding: 1em;")
+                p Your email has been confirmed. Click here to return to login. 
+                | <br>
+                div(id="home" class="button") Login 
+                    a(href="/auth/login")
+                    div(id="underline") 

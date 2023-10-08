@@ -1,0 +1,105 @@
+html {
+	background: #f3f3f3;
+	font-family: Consolas, Courier New, monospace;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+}
+
+.nav-bar {
+	display: inline;
+	overflow: hidden;
+	position: relative;
+	min-width: 100%;
+}
+
+.nav-bar #links {
+	display: flex;
+	float: left;
+}
+
+.nav-bar #links a {
+	color: black;
+	text-align: center;
+	padding: 14px 16px;
+	font-size: 17px;
+}
+
+.nav-bar #links a:hover {
+	background-color: lightgrey;
+	color: black;
+}
+
+.nav-bar #links a.active {
+	background-color: violet;
+	color: black;
+}
+
+.nav-bar #login {
+	color: black;
+	text-align: center;
+	padding: 14px 16px;
+	font-size: 17px;
+	background-color: darkgrey;
+	float: right;
+}
+
+.nav-bar #user {
+	text-align: center;
+	padding: 14px 16px;
+	font-size: 17px;
+	float: right;
+}
+
+.nav-bar #menu-icon {
+	display: none;
+	max-height: 20px;
+	float: right;
+	padding: 14px 16px;
+}
+
+.nav-bar a#menu-icon .bar {
+	width: 25px;
+	height: 3px;
+	background-color: black;
+	margin: 3px 0;
+}
+
+.centered {
+	margin: auto;
+}
+
+.centered-legacy {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.container {
+	border-style: solid;
+	background: white;
+}
+
+div.flexDiv {
+	display: flex;
+	flex-direction: column;
+}
+
+@media screen and (max-width: 600px) {
+	.nav-bar #links {
+		flex-direction: column;
+		float: none;
+		display: none;
+	}
+
+	.nav-bar #links #login {
+		align-self: unset;
+	}
+
+	.nav-bar #menu-icon {
+		display: block;
+	}
+}

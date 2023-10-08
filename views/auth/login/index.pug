@@ -1,0 +1,20 @@
+extends ../../layout.pug
+
+block append body 
+    div(class="centered")
+        h1(style="text-align: center;") Login
+        div(class="container responsive" style="text-align: center; padding: 4em;")
+            h2 Username
+            input(type="text" id="username")
+            | <br />
+            h2 Password
+            input(type="password" id="password")
+            | <br /><br />
+            input(id="submit" type="submit" value="Login")
+            input(type="hidden" id="csrf" value=csrfToken)
+            |<br /><br />
+            |Or 
+            |<br /><br />
+            a(href="/auth/signup") Signup
+        div(id="errorBox" style="display: none;color: red; text-align: center; margin-top: 4em;")
+    script(src="/public/scripts/auth/login.js")

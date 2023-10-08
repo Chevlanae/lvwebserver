@@ -1,0 +1,24 @@
+html 
+    head
+        block head
+            link(rel='stylesheet' href="/public/css/styles.css")
+            meta(name="viewport" content="width=device-width, initial-scale=1")
+            
+    nav
+        block nav 
+            div(class="nav-bar" id="header")
+                div(id="links")
+                    a(href="/home") Home
+                    a(href="#test") test
+                if session === undefined || !session.isAuthenticated 
+                    a(href="/auth/login" id="login") Login
+                else 
+                    a(href="/user/" + session.username id="user")= session.username
+                a(href="#" id="menu-icon")
+                    div(class="bar")
+                    div(class="bar")
+                    div(class="bar") 
+            script(src="/public/scripts/nav.js")
+                
+    body 
+        block body
